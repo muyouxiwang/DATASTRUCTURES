@@ -128,8 +128,6 @@ def test():
 
 
 if __name__ == "__main__":
-    #m = MainFrm()
-    #m.start()
     test()
 
 
