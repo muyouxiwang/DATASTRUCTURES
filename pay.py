@@ -11,6 +11,8 @@ def get_pays(total):
     return pays
 print "what the shit"
 print "nothing is happeninig, dont worry about it"
+print "what the fuck"
+print "what is happening"
     
 
 
