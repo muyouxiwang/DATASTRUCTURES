@@ -9,6 +9,7 @@ def get_pays(total):
             pays.append(coin)
             total -= coin
     return pays
+print "what the fuck"
     
 
 
