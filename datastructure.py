@@ -48,13 +48,13 @@ class HashTable(object):
  
     def _put(self, node, k, v):
         if node is None:
-            return Node(k, v)
+            node = Node(k, v)
+        elif k == node.k:
+            node.v = v
         elif k > node.k:
             node.right = self._put(node.right, k, v)
         elif k < node.k:
             node.left = self._put(node.left, k, v)
-        elif k == node.k:
-            node.v = v
         return node
 
     def leth(self):
