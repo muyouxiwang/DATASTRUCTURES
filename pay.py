@@ -10,6 +10,7 @@ def get_pays(total):
             total -= coin
     return pays
 print "what the fuck"
+print "what is happening"
     
 
 
