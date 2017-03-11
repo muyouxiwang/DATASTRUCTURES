@@ -55,6 +55,7 @@ class HashTable(object):
             node.right = self._put(node.right, k, v)
         elif k < node.k:
             node.left = self._put(node.left, k, v)
+        node.N = 1 + self._leth(node.left) + self._leth(node.right)
         return node
 
     def leth(self):
@@ -63,7 +64,7 @@ class HashTable(object):
     def _leth(self, node):
         if node is None:
             return 0
-        return 1 + self._leth(node.left) + self._leth(node.right)
+        return node.N
 
     def pre_trav(self):
         self._pre_trav(self.root)
@@ -118,13 +119,15 @@ def test():
     assert(d.leth() == 6)
     d.put(9, 10)
     d.put(7, 15)
+    d.put(9, 14)
+    assert(d.leth() == 8)
 
     assert(d.get(3) == 4)
     assert(d.get(5) == 6)
     assert(d.get(1) == 7)
     assert(d.get(2) == 8)
     
-    d.show()
+    #d.show()
 
 
 if __name__ == "__main__":
