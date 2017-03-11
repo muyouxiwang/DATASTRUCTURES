@@ -96,6 +96,27 @@ class HashTable(object):
         self._pos_trav(node.right, visit)
         visit(node)
 
+    def min(self):
+        if self.root is None:
+            return None
+        return self._min(self.root).k
+
+    def _min(self, node):
+        if node.left is None:
+            return node
+        return self._min(node.left)
+
+    def max(self):
+        if self.root is None:
+            return None
+        return self._max(self.root).k
+
+    def _max(self, node):
+        if node.right is None:
+            return node
+        return self._max(node.right)
+        
+
     def show(self):
         nodes = []
         ages = set()
@@ -126,6 +147,9 @@ def test():
     assert(d.get(5) == 6)
     assert(d.get(1) == 7)
     assert(d.get(2) == 8)
+
+    assert(d.min() == 1)
+    assert(d.max() == 9)
     
     #d.show()
 
