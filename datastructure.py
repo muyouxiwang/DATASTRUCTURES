@@ -115,7 +115,31 @@ class HashTable(object):
         if node.right is None:
             return node
         return self._max(node.right)
-        
+
+    def rank(self, k):
+        return self._rank(self.root, k)
+
+    def _rank(self, node, k):
+        if k == node.k:
+            return self._leth(node.left) + 1
+        elif k < node.k:
+            return self._rank(node.left, k)
+        else:
+            return self._leth(node.left) + 1 + self._rank(node.right, k)
+
+    def select(self, ranknum):
+        return self._select(self.root, ranknum)
+
+    def _select(self, node, ranknum):
+        if node is None:
+            return None
+        num = self.rank(node.k)
+        if num == ranknum:
+            return node.k
+        elif num < ranknum:
+            return self._select(node.right, ranknum)
+        else:
+            return self._select(node.left, ranknum)
 
     def show(self):
         nodes = []
@@ -152,6 +176,16 @@ def test():
     assert(d.max() == 9)
     
     #d.show()
+
+    # print d.rank(9)
+    # print d.rank(8)
+    # print d.rank(5)
+    # print d.rank(7)
+
+    print d.select(6)
+    print d.select(7)
+    print d.select(8)
+    print d.select(10)
 
 
 if __name__ == "__main__":
