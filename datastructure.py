@@ -141,6 +141,37 @@ class HashTable(object):
         else:
             return self._select(node.left, ranknum)
 
+    def delete_min(self):
+        self._delete_min(self.root)
+
+    def _delete_min(node):
+        if node is None:
+            return
+        next = node.left
+        if next:
+            self._delete_min(next)
+        else:
+            if node.right:
+                node = node.right
+            else:
+                node = None
+ 
+    def delete_max(self):
+        self._delete_max(self.root)
+
+    def _delete_max(self, node):
+        if node is None:
+            return
+        next = node.right
+        if next:
+            self._delete_max(next)
+        else:
+            if node.left:
+                node = node.left
+            else:
+                node = None
+        
+
     def show(self):
         nodes = []
         ages = set()
@@ -175,17 +206,26 @@ def test():
     assert(d.min() == 1)
     assert(d.max() == 9)
     
-    #d.show()
+    d.show()
+
+    d.delete_min()
+    d.show()
+
+    d.delete_max()
+    d.show()
 
     # print d.rank(9)
     # print d.rank(8)
     # print d.rank(5)
     # print d.rank(7)
 
-    print d.select(6)
-    print d.select(7)
-    print d.select(8)
-    print d.select(10)
+    # print d.select(6)
+    # print d.select(7)
+    # print d.select(8)
+    # print d.select(10)
+
+
+
 
 
 if __name__ == "__main__":
