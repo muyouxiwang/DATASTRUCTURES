@@ -11,6 +11,7 @@ class Node(object):
         self.left = None
         self.right = None
         self.v = v
+        self.parent = None
     
     def __str__(self):
         return str(self.k)
@@ -52,9 +53,13 @@ class HashTable(object):
         elif k == node.k:
             node.v = v
         elif k > node.k:
-            node.right = self._put(node.right, k, v)
+            new_node = self._put(node.right, k, v)
+            node.right = new_node
+            new_node.parent = node
         elif k < node.k:
-            node.left = self._put(node.left, k, v)
+            new_node = self._put(node.left, k, v)
+            node.left = new_node
+            new_node.parent = node
         node.N = 1 + self._leth(node.left) + self._leth(node.right)
         return node
 
@@ -155,9 +160,11 @@ class HashTable(object):
             self._delete_min(next)
         else:
             if node.right:
-                node = node.right
+                node.parent.left = node.right
+                #node = node.right
             else:
-                node = None
+                #node = None
+                node.parent.left = None
  
     def delete_max(self):
         self._delete_max(self.root)
@@ -170,9 +177,11 @@ class HashTable(object):
             self._delete_max(next)
         else:
             if node.left:
-                node = node.left
+                #node = node.left
+                node.parent.right = node.left
             else:
-                node = None
+                #node = None
+                node.parent.right = None
         
 
     def show(self):
@@ -218,6 +227,12 @@ def test():
 
     d.delete_max()
     #d.show()
+    d.mid_trav()
+
+    d.delete_max()
+    d.mid_trav()
+
+    d.delete_min()
     d.mid_trav()
 
     # print d.rank(9)
