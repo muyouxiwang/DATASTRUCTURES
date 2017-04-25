@@ -3,7 +3,7 @@
 import make_graphic
 
 def _visit(node):
-    print node
+    print node,
 
 class Node(object):
     def __init__(self, k, v):
@@ -68,6 +68,7 @@ class HashTable(object):
 
     def pre_trav(self):
         self._pre_trav(self.root)
+        print
 
     def _pre_trav(self, node, visit = _visit):
         if node is None:
@@ -78,6 +79,7 @@ class HashTable(object):
     
     def mid_trav(self):
         self._mid_trav(self.root)
+        print
 
     def _mid_trav(self, node, visit = _visit):
         if node is None:
@@ -88,6 +90,7 @@ class HashTable(object):
  
     def pos_trav(self):
         self._pos_trav(self.root)
+        print
 
     def _pos_trav(self, node, visit = _visit):
         if node is None:
@@ -144,7 +147,7 @@ class HashTable(object):
     def delete_min(self):
         self._delete_min(self.root)
 
-    def _delete_min(node):
+    def _delete_min(self, node):
         if node is None:
             return
         next = node.left
@@ -206,13 +209,16 @@ def test():
     assert(d.min() == 1)
     assert(d.max() == 9)
     
-    d.show()
+    #d.show()
+    d.mid_trav()
 
     d.delete_min()
-    d.show()
+    #d.show()
+    d.mid_trav()
 
     d.delete_max()
-    d.show()
+    #d.show()
+    d.mid_trav()
 
     # print d.rank(9)
     # print d.rank(8)
