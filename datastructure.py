@@ -11,7 +11,7 @@ class Node(object):
         self.left = None
         self.right = None
         self.v = v
-        self.parent = None
+        # self.parent = None
     
     def __str__(self):
         return str(self.k)
@@ -53,13 +53,11 @@ class HashTable(object):
         elif k == node.k:
             node.v = v
         elif k > node.k:
-            new_node = self._put(node.right, k, v)
-            node.right = new_node
-            new_node.parent = node
+            node.right = self._put(node.right, k, v)
+            # new_node.parent = node
         elif k < node.k:
-            new_node = self._put(node.left, k, v)
-            node.left = new_node
-            new_node.parent = node
+            node.left = self._put(node.left, k, v)
+            # new_node.parent = node
         node.N = 1 + self._leth(node.left) + self._leth(node.right)
         return node
 
@@ -107,7 +105,7 @@ class HashTable(object):
     def min(self):
         if self.root is None:
             return None
-        return self._min(self.root).k
+        return self._min(self.root)
 
     def _min(self, node):
         if node.left is None:
@@ -117,7 +115,7 @@ class HashTable(object):
     def max(self):
         if self.root is None:
             return None
-        return self._max(self.root).k
+        return self._max(self.root)
 
     def _max(self, node):
         if node.right is None:
@@ -155,13 +153,23 @@ class HashTable(object):
     def _delete(self, node, k):
         if node is None:
             return
-        if k == node.k:
+        elif k == node.k:
             if node.left and node.right:
-                pass
+                tmp = self._min(node.right)
+                node.k = tmp.k
+                v = node.k
+                node.right = self._delete(node.right, v)
+            elif node.left:
+                node = node.left
+            elif node.right:
+                node = node.right
+            else:
+                node = None
         elif k > node.k:
-            self._delete(node.right, k)
+            node = self._delete(node.right, k)
         else:
-            self._delete(node.left, k)
+            node = self._delete(node.left, k)
+        return node 
 
     def delete_min(self):
         self._delete_min(self.root)
@@ -169,16 +177,24 @@ class HashTable(object):
     def _delete_min(self, node):
         if node is None:
             return
-        next = node.left
-        if next:
-            self._delete_min(next)
+        elif node.left:
+            node.left = self._delete_min(node.left)
+        elif node.right:
+            node = node.right
         else:
-            if node.right:
-                node.parent.left = node.right
-                #node = node.right
-            else:
-                #node = None
-                node.parent.left = None
+            node = None
+        return node
+
+        # next = node.left
+        # if next:
+        #     self._delete_min(next)
+        # else:
+        #     if node.right:
+        #         node.parent.left = node.right
+        #         #node = node.right
+        #     else:
+        #         #node = None
+        #         node.parent.left = None
  
     def delete_max(self):
         self._delete_max(self.root)
@@ -186,16 +202,24 @@ class HashTable(object):
     def _delete_max(self, node):
         if node is None:
             return
-        next = node.right
-        if next:
-            self._delete_max(next)
+        elif node.right:
+            node.right = self._delete_max(node.right)
+        elif node.left:
+            node = node.left
         else:
-            if node.left:
-                #node = node.left
-                node.parent.right = node.left
-            else:
-                #node = None
-                node.parent.right = None
+            node = None
+        return node
+        
+        # next = node.right
+        # if next:
+        #     self._delete_max(next)
+        # else:
+        #     if node.left:
+        #         #node = node.left
+        #         node.parent.right = node.left
+        #     else:
+        #         #node = None
+        #         node.parent.right = None
         
 
     def show(self):
@@ -229,25 +253,34 @@ def test():
     assert(d.get(1) == 7)
     assert(d.get(2) == 8)
 
-    assert(d.min() == 1)
-    assert(d.max() == 9)
+    assert(d.min().k == 1)
+    assert(d.max().k == 9)
     
     #d.show()
+
     d.mid_trav()
 
-    #d.delete_min()
-    #d.show()
+    d.delete(5)
     d.mid_trav()
 
-    #d.delete_max()
-    #d.show()
+    d.delete(8)
     d.mid_trav()
 
-    #d.delete_max()
+    d.delete(1)
     d.mid_trav()
 
-    #d.delete_min()
-    d.mid_trav()
+    # d.delete_min()
+    # d.mid_trav()
+
+    # d.delete_max()
+    # d.mid_trav()
+
+    # d.delete_min()
+    # d.mid_trav()
+
+    # d.delete_max()
+    # d.mid_trav()
+
 
     # print d.rank(9)
     # print d.rank(8)
@@ -258,6 +291,8 @@ def test():
     # print d.select(7)
     # print d.select(8)
     # print d.select(10)
+
+    
 
 
 
