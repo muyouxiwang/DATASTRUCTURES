@@ -166,9 +166,9 @@ class HashTable(object):
             else:
                 node = None
         elif k > node.k:
-            node = self._delete(node.right, k)
+            node.right = self._delete(node.right, k)
         else:
-            node = self._delete(node.left, k)
+            node.left = self._delete(node.left, k)
         return node 
 
     def delete_min(self):
