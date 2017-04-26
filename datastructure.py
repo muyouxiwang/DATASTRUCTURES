@@ -149,6 +149,20 @@ class HashTable(object):
         else:
             return self._select(node.left, ranknum)
 
+    def delete(self, k):
+        self._delete(self.root, k)
+
+    def _delete(self, node, k):
+        if node is None:
+            return
+        if k == node.k:
+            if node.left and node.right:
+                pass
+        elif k > node.k:
+            self._delete(node.right, k)
+        else:
+            self._delete(node.left, k)
+
     def delete_min(self):
         self._delete_min(self.root)
 
@@ -221,18 +235,18 @@ def test():
     #d.show()
     d.mid_trav()
 
-    d.delete_min()
+    #d.delete_min()
     #d.show()
     d.mid_trav()
 
-    d.delete_max()
+    #d.delete_max()
     #d.show()
     d.mid_trav()
 
-    d.delete_max()
+    #d.delete_max()
     d.mid_trav()
 
-    d.delete_min()
+    #d.delete_min()
     d.mid_trav()
 
     # print d.rank(9)
