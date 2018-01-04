@@ -31,6 +31,8 @@ ALLOWED_HOSTS = [u'10.0.2.15', u'127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
+    'fuckme.apps.FuckmeConfig',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
