@@ -1,0 +1,277 @@
+
+/*body {
+	background: #000;
+}*/
+
+a {
+	text-decoration: none;
+}
+
+#container {
+	position: relative;
+	width:733px;
+	height:548px;
+	background: url(images/main_background.png) no-repeat;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 0px;
+
+	/*background: #900;*/
+}
+
+
+/*==============================================*/
+#acttitle {
+	color: #FFD700;
+	font-weight:bold;
+	font-size: 20px;
+
+	padding-top: 10px;
+	text-align: center;
+
+	/*background: #900;*/
+
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+}
+
+#acttitle a{
+	color: #FFD700;
+	font-style: italic;
+}
+
+#btn_logout {
+	display: block;
+	position: absolute;
+	top: 10px;
+	right: 20px;
+	
+	width:26px;
+	height:26px;
+	background: transparent url(images/btn_logout_normal.png) no-repeat;
+
+    -webkit-app-region: no-drag;
+}
+
+#btn_logout:hover {
+	background: transparent url(images/btn_logout_down.png) no-repeat;
+}
+
+#btn_logout:active {
+	background: transparent url(images/btn_logout_normal.png) no-repeat;
+}
+
+/*==============================================*/
+#menu {
+	/*width:733px;*/
+	height: 31px;
+	margin-top: 20px;
+	margin-left: auto;
+	margin-right: auto;
+    margin-bottom: 1px;
+
+	/*background: #009;*/
+}
+
+
+#menu li{
+	width: 110px;
+	height: 31px;
+	float: left;
+	list-style-type: none;
+	text-align: center;
+	background: url(images/menu_normal.gif) no-repeat;
+}
+
+#menu li:hover{
+	background: url(images/menu_down.png) no-repeat;
+}
+
+.menu_up {
+	background: url(images/menu_normal.gif) no-repeat;
+}
+
+.menu_down {
+	background: url(images/menu_down.png) no-repeat;
+}
+
+
+#menu li a{
+	font-size: 15px;
+	font-weight: bold;
+	color: #fff;
+    line-height: 31px;
+}
+
+
+
+.submenu{
+	/*width:733px;*/
+	height: 31px;
+	margin-top: 1px;
+	padding-left: 0px;
+	margin-right: auto;
+
+    display: none;
+}
+
+
+.submenu li{
+	width: 110px;
+	height: 31px;
+	list-style-type: none;
+	text-align: center;
+    margin-top: 1px;
+	background: url(images/menu_normal.gif) no-repeat;
+}
+
+.submenu li:hover{
+	background: url(images/menu_down.png) no-repeat;
+}
+
+.submenu li a{
+	font-size: 15px;
+	font-weight: bold;
+	color: #fff;
+	text-align: center;
+    line-height: 31px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#workzone {
+	width: 660px;
+	height: 400px;
+	border:1px solid #000;
+	margin: 20px auto 10px auto;
+
+	/*background: #090;*/
+}
+
+form {
+	width: 200px;
+    height: 200px;
+	padding-left: 10px;
+	padding-bottom: 6px;
+	/*margin-top: 10px;
+	margin-left: auto;
+	margin-right: auto;*/
+    float: left;
+	border-radius: 10px;
+	border: 1px solid #000;
+
+	background: #EECFA1;
+}
+
+form label {
+	font-weight: bold;
+	color: #333;
+	font-size: 12px;
+}
+
+form input,select,textarea{
+	height: 25px;
+	background: #FFE7BA;
+	border: 1px solid #333;
+	margin-top: 10px;
+}
+
+form textarea{
+	width: 190px;
+	height: 190px;
+    resize: none;
+}
+
+.shortinput{
+	width: 150px;
+}
+
+.longinput {
+	width: 400px;
+}
+
+.btn_submit {
+	width: 80;
+	height: 22;
+	display: block;
+	margin-top: 10px;
+	margin-left: auto;
+	margin-right: auto;
+	background: transparent url(images/btn_confirm_normal.gif) no-repeat;
+
+	text-align: center;
+	font-size: 14px;
+	color: #fff;
+	padding-top: 2px;
+}
+
+.btn_submit:active{
+	background: transparent url(images/btn_confirm_down.gif) no-repeat;
+}
+
+.btn_submit:hover{
+	color: #FFD700;
+}
+
+
+#result {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#result_content {
+	width: 440px;
+	line-height: 25px;
+	margin-left: auto;
+	margin-right: auto;
+	border: 1px solid #333;
+	padding-top: 5px;
+	padding-left: 10px;
+	padding-bottom: 5px;
+
+	background: url(images/result_content.jpg) repeat-y -25px;
+}
+
+.url_content {
+	word-wrap:break-word;
+}
+
+
+.long_content {
+    float: left;
+	line-height: 14px;
+    width: 220px;
+}
+
+
+.clear {
+    clear: both;
+}
+
+
+#servers{
+	width: 600px;
+    height: 200px;
+	padding-left: 10px;
+	padding-bottom: 6px;
+	/*margin-top: 10px;
+	margin-left: auto;
+	margin-right: auto;*/
+    margin: 0 auto;
+	border-radius: 10px;
+	border: 1px solid #000;
+
+	background: #EECFA1;
+
+}

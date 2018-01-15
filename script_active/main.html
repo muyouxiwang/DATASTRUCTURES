@@ -1,0 +1,265 @@
+<html>
+
+<head>
+	
+<meta charset="UTF-8">
+<title>脚本活动</title>
+
+<link rel="stylesheet" href="./static/css/active.css" type="text/css" />
+
+<script src="./static/js/jquery-3.1.1.js"></script>
+<script src="./static/js/jquery.md5.js"></script>
+
+<script src="./static/js/active.js"></script>
+
+
+<script src="control.js"></script>
+
+
+</head>
+
+<body>
+
+	<div id="container">
+        <div id="acttitle">
+           脚本活动 
+        </div>
+		<!--<a id="btn_logout" href="/logout"></a>-->
+        <a id="btn_logout" href="javascript:void(0)" onclick="quit_app()"></a>
+    <ul id="menu">
+        <li>
+            <a href="javascript:void(0)" onclick="show_company()">选择运营商</a>
+            <ul id="companymenu" class="submenu"></ul>
+        </li>
+        <li>
+            <a href="javascript:void(0)" onclick="system_config()">系统设置</a>
+            <ul id="configmenu" class="submenu">
+        <li> <a href='javascript:void(0)' onclick='syncgm()'>同步更新gm</a> </li>
+            </ul>
+        </li>
+        <li>
+            <a href="javascript:void(0)" onclick="check_log()">查看</a>
+            <ul id="checklogmenu" class="submenu">
+        <li> <a href='javascript:void(0)' onclick='checkresult()'>查看执行日志</a> </li>
+        <li> <a href='javascript:void(0)' onclick='checkprocess()'>查看执行进度</a> </li>
+            </ul>
+        </li>
+    </ul>
+		
+<div id="workzone">
+
+
+<form enctype="multipart/form-data">
+
+<label>活动名称：</label>
+
+
+<select id="acthistory" class="shortinput" style="position:relative;" onchange="show_active_name()"></select>
+
+
+<input class="shortinput" type="text" id="active_name" name="active_name" value="" style="position:absolute; left:49px; width:130px;"/>
+
+
+
+<br/>
+
+<label>活动类型：</label>
+<input class="shortinput" type="text" id="active_type" name="active_type" value=""/> <br/>
+
+<label>脚本名称：</label>
+<input class="shortinput" type="text" id="script_name" name="script_name" value=""/> <br/>
+
+
+<a class="btn_submit" id="do_active" href="#">执行</a>
+
+</form>
+
+<form>
+<textarea id="selected_servers" readonly="true"></textarea>
+</form>
+<form>
+<textarea id="active_results" readonly="true"></textarea>
+</form>
+
+<div class="Clear"></div>
+
+<div id="servers"></div>
+
+
+</div>
+
+	</div>
+
+
+
+
+
+
+
+<script type="text/javascript">
+
+function update_company_menu(){
+    var tmp = "";
+    for (var i=0; i<companys.length; i++){
+        tmp += "<li><a href='javascript:void(0)' onclick='select_company("+companys[i]['id']+")'>"+companys[i]['name']+"</a></li>";
+    }
+    $("#companymenu").html(tmp);
+}
+
+update_company_menu();
+
+function update_history(){
+    $("#acthistory").empty();
+    var tmp = "";
+    for (var i=0; i<historys.length; i++){
+        tmp = "<option value='"+historys[i].id+"'>"+historys[i].actname+"</option>"
+            $("#acthistory").append($(tmp));
+    }
+}
+
+function update_history_panel(){
+    update_history();
+    show_active_name();
+}
+
+update_history_panel();
+
+function show_company(){
+    $("#companymenu").toggle();
+}
+
+function system_config(){
+    $("#configmenu").toggle();
+}
+
+function check_log(){
+    $("#checklogmenu").toggle();
+}
+
+function get_op(){
+    var flag = true;
+    function select_all(){
+        $("input:checkbox").each(function(){
+        $(this).prop("checked", flag);}); 
+        flag = !flag;
+        $("#select_all").text({true: "全选",
+                                false: "取消"}[flag]);
+    }
+    return select_all;
+}
+
+
+function show_active_name(){
+var hid = $("#acthistory").val();
+$("#active_name").val($("select option[value='"+ hid +"']").text());
+$("#active_type").val(get_active_type(hid));
+$("#script_name").val(get_act_script(hid));
+}
+
+
+function add_select(){
+    var selected = [];
+    $("input:checkbox").each(function(){
+
+    if ($(this).prop("checked")){
+        selected.push($(this).val());
+        /*tt = $("#selected_servers").text();
+$("#selected_servers").text(tt + "\n" +$(this).next("span").text());
+$("#selected_servers").scrollTop($("#selected_servers")[0].scrollHeight)*/
+       }
+   });
+    selected_info[curr_company] = [];
+    for (var i=0; i<selected.length; i++){
+            selected_info[curr_company].push(selected[i]);
+        }
+    var tt = ""
+    for (var cid in selected_info){
+        tt += get_company_name(cid) + selected_info[cid].length + "/" + com_serv[cid].length + "\n"
+    
+    }
+    $("#selected_servers").text(tt);
+    $("#selected_servers").scrollTop($("#selected_servers")[0].scrollHeight);
+}
+
+function select_company(cid){
+    curr_company = cid;
+    var ss = "<a class='btn_submit' id='select_all' href='#'>"+ get_company_name(cid) + ":" + "全选</a>";
+    ss += "<a class='btn_submit' id='add_select' href='#'>添加</a>";
+    for (var i=0; i<servers.length; i++){
+        if (servers[i].comid == cid){
+            ss += "<input type='checkbox' value='"+ servers[i].id +"'/><span>" + servers[i].name + "</span>";
+        }
+    }
+    $("#servers").html(ss);
+    $("#select_all").bind("click", get_op());
+    $("#add_select").bind("click", add_select);
+}
+
+
+$("#do_active").bind("click", function(){
+    var sids = [];
+    for (var cid in selected_info){
+        for (var i =0; i< selected_info[cid].length; i++){
+            if (sids.indexOf(selected_info[cid][i]) == -1){
+                sids.push(selected_info[cid][i]);
+            }
+        }
+    }
+    if (sids.length <= 0){
+        alert("请选择运营商");
+        return;
+    }
+    var active_name = $("#active_name").val();
+    var active_type = $("#active_type").val().toLowerCase();
+    var script_name = $("#script_name").val();
+    if (!(active_name && active_type && script_name)) {
+        alert("请完善活动信息");
+        return;
+    }
+    var p = new RegExp(/\W/g);
+    if (p.test(active_type)){
+        alert("活动类型只能由字母数字下划线组成");
+        return;
+    }
+    var tt = script_name.split(".");
+    if (tt.length!=2 || tt[1].toUpperCase()!="PY"){
+        alert("脚本文件必须是py脚本");
+        return;
+    }
+
+    do_active(active_name, active_type, script_name, sids);
+
+});
+
+function syncgm(){
+    update_gm_data();
+}
+
+function add_active_fail(server_name){
+    var tt = "失败：" + server_name + "\n";
+    $("#active_results").text($("#active_results").text() + tt);
+    $("#active_results").scrollTop($("#selected_servers")[0].scrollHeight);
+}
+
+function add_active_success(server_name){
+    var tt = "成功：" + server_name + "\n";
+    $("#active_results").text($("#active_results").text() + tt);
+    $("#active_results").scrollTop($("#selected_servers")[0].scrollHeight);
+}
+
+const {ipcRenderer} = require("electron");
+
+function quit_app(){
+    ipcRenderer.send("quit_app");
+}
+
+
+
+</script>
+
+
+</body>
+
+
+</html>
+
