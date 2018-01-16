@@ -1,11 +1,12 @@
 
 
 
-
+/*
 function init_menu(){
     $("ul>li").removeClass("menu_down");
     $("ul>li").addClass("menu_up");
 }
+*/
 
 function get_post_data(post_keys){
 	var data = {};
@@ -23,12 +24,12 @@ function check_input(fileid, alertmsg){
 	return true;
 }
 
-
+/*
 function change_menu_status(menuid){
     init_menu();
     $("#"+menuid).addClass("menu_down");
 }
-
+*/
 
 
 
