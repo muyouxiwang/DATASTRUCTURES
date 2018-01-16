@@ -48,6 +48,7 @@
     <div id="workzone">
 
 
+<div id="panel">
     <form>
 
     <label>活动名称：</label>
@@ -79,6 +80,8 @@
     <form>
         <textarea id="active_results" readonly="true"></textarea>
     </form>
+
+</div>
 
     <div class="Clear"></div>
 
@@ -173,16 +176,23 @@ $("#selected_servers").scrollTop($("#selected_servers")[0].scrollHeight)*/
     $("#selected_servers").scrollTop($("#selected_servers")[0].scrollHeight);
 }
 
+
 function select_company(cid){
     curr_company = cid;
     var ss = "<a class='btn_submit' id='select_all' href='#'>"+ companys.get_company_name(cid) + ":" + "全选</a>";
     ss += "<a class='btn_submit' id='add_select' href='#'>添加</a>";
-    
-    var ses = servers.get_cm_servers(cid);
 
+    ss += "<table></tr>";
+    
+    var count = 1;
+    var ses = servers.get_cm_servers(cid);
     for (var i=0; i<ses.length; i++){
-        ss += "<input type='checkbox' value='"+ ses[i].id +"'/><span>" + ses[i].name + "</span>";
+        var one = "<td><input type='checkbox' value='"+ ses[i].id +"'/><span>" + ses[i].name + "</span></td>";
+        ss += one;
+        if (count % 3 == 0){ ss += "</tr><tr>";  }
+        count += 1;
     }
+    ss += "</tr></table>";
     $("#servers").html(ss);
     $("#select_all").bind("click", get_op());
     $("#add_select").bind("click", add_select);

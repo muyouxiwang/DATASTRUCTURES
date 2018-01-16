@@ -115,19 +115,25 @@ li a {
 	/*background: #090;*/
 }
 
+#panel{
+    width: 660px;
+    height: 220px;
+}
+
+
 form {
+
 	width: 200px;
     height: 200px;
 	padding-left: 10px;
 	padding-bottom: 6px;
-	/*margin-top: 10px;
-	margin-left: auto;
-	margin-right: auto;*/
     float: left;
 	border-radius: 10px;
 	border: 1px solid #000;
 
 	background: #EECFA1;
+
+    margin-left: 5px;
 }
 
 form label {
@@ -137,10 +143,13 @@ form label {
 }
 
 form input,select,textarea{
-	height: 25px;
 	background: #FFE7BA;
 	border: 1px solid #333;
 	margin-top: 10px;
+}
+
+form input,select {
+	height: 25px;
 }
 
 form textarea{
@@ -149,13 +158,12 @@ form textarea{
     resize: none;
 }
 
+
+
 .shortinput{
 	width: 150px;
 }
 
-.longinput {
-	width: 400px;
-}
 
 .btn_submit {
 	width: 80;
