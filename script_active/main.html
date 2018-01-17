@@ -5,10 +5,11 @@
 <meta charset="UTF-8">
 <title>脚本活动</title>
 
-<link rel="stylesheet" href="./static/css/active.css" type="text/css" />
+<link rel="stylesheet" href="./static/css/active.css" type="text/css"/>
 
 <script src="./static/js/jquery-3.1.1.js"></script>
 <script src="./static/js/jquery.md5.js"></script>
+<script src="./static/js/layer/layer.js"></script>
 
 <script src="util.js"></script>
 
@@ -24,7 +25,9 @@
 
 <div id="container">
         <div id="acttitle">脚本活动</div>
-        <a id="btn_logout" href="javascript:void(0)" onclick="quit_app()"></a>
+        <a id="btn_logout" href="#"></a>
+
+<div id="middle">
 
     <div class="nav">
         <ul>
@@ -33,13 +36,13 @@
             </li>
             <li><a href="#">系统设置</a>
                 <ul>
-                    <li> <a href='javascript:void(0)' onclick='syncgm()'>同步gm</a> </li>
+                    <li> <a href='#' id='syncgm'>同步gm</a> </li>
                 </ul>
             </li>
             <li><a href="#">查看</a>
                 <ul>
-                    <li> <a href='javascript:void(0)' onclick='checkresult()'>执行日志</a> </li>
-                    <li> <a href='javascript:void(0)' onclick='checkprocess()'>执行进度</a> </li>
+                    <li><a href='#' id='checkresult'>执行日志</a> </li>
+                    <li><a href='#' id='checkprocess'>执行进度</a></li>
                 </ul>
             </li>
         </ul>
@@ -57,7 +60,7 @@
     <select id="acthistory" class="shortinput" style="position:relative;" onchange="show_active_name()"></select>
 
 
-    <input class="shortinput" type="text" id="active_name" name="active_name" value="" style="position:absolute; left:49px; width:130px;"/>
+    <input class="shortinput" type="text" id="active_name" name="active_name" value=""/>
 
 
 
@@ -89,186 +92,16 @@
 
 
     </div>
+</div>
+
+
+<div id="tail"></div>
 
 </div>
 
 
-
-
-
-
-
 <script type="text/javascript">
-
-function update_company_menu(){
-    var cs = companys.get_all_companys();
-    var tmp = "";
-    for (var i=0; i<cs.length; i++){
-        tmp += "<li><a href='javascript:void(0)' onclick='select_company("+cs[i].id+")'>"+cs[i].name+"</a></li>";
-    }
-    $("#companymenu").html(tmp);
-}
-
-update_company_menu();
-
-function update_history(){
-    var hh = historys.get_historys();
-    $("#acthistory").empty();
-    var tmp = "";
-    for (var i=0; i<hh.length; i++){
-        tmp = "<option value='"+hh[i].id+"'>"+hh[i].actname+"</option>"
-            $("#acthistory").append($(tmp));
-    }
-}
-
-function update_history_panel(){
-    update_history();
-    show_active_name();
-}
-
-update_history_panel();
-
-
-
-
-function get_op(){
-    var flag = true;
-    function select_all(){
-        $("input:checkbox").each(function(){
-        $(this).prop("checked", flag);}); 
-        flag = !flag;
-        $("#select_all").text({true: "全选",
-                                false: "取消"}[flag]);
-    }
-    return select_all;
-}
-
-
-function show_active_name(){
-var hid = $("#acthistory").val();
-$("#active_name").val($("select option[value='"+ hid +"']").text());
-$("#active_type").val(historys.get_active_type(hid));
-$("#script_name").val(historys.get_act_script(hid));
-}
-
-
-function add_select(){
-    var selected = [];
-    $("input:checkbox").each(function(){
-
-    if ($(this).prop("checked")){
-        selected.push($(this).val());
-        /*tt = $("#selected_servers").text();
-$("#selected_servers").text(tt + "\n" +$(this).next("span").text());
-$("#selected_servers").scrollTop($("#selected_servers")[0].scrollHeight)*/
-       }
-   });
-    selected_info[curr_company] = [];
-    for (var i=0; i<selected.length; i++){
-            selected_info[curr_company].push(selected[i]);
-        }
-    var tt = ""
-    for (var cid in selected_info){
-        tt += companys.get_company_name(cid) + selected_info[cid].length + "/" + servers.get_cm_servers_num(cid) + "\n"
-    
-    }
-    $("#selected_servers").text(tt);
-    $("#selected_servers").scrollTop($("#selected_servers")[0].scrollHeight);
-}
-
-
-function select_company(cid){
-    curr_company = cid;
-    var ss = "<a class='btn_submit' id='select_all' href='#'>"+ companys.get_company_name(cid) + ":" + "全选</a>";
-    ss += "<a class='btn_submit' id='add_select' href='#'>添加</a>";
-
-    ss += "<table></tr>";
-    
-    var count = 1;
-    var ses = servers.get_cm_servers(cid);
-    for (var i=0; i<ses.length; i++){
-        var one = "<td><input type='checkbox' value='"+ ses[i].id +"'/><span>" + ses[i].name + "</span></td>";
-        ss += one;
-        if (count % 3 == 0){ ss += "</tr><tr>";  }
-        count += 1;
-    }
-    ss += "</tr></table>";
-    $("#servers").html(ss);
-    $("#select_all").bind("click", get_op());
-    $("#add_select").bind("click", add_select);
-}
-
-
-$("#do_active").bind("click", function(){
-    var sids = [];
-    for (var cid in selected_info){
-        for (var i =0; i< selected_info[cid].length; i++){
-            if (sids.indexOf(selected_info[cid][i]) == -1){
-                sids.push(selected_info[cid][i]);
-            }
-        }
-    }
-    if (sids.length <= 0){
-        alert("请选择运营商");
-        return;
-    }
-    var active_name = $("#active_name").val();
-    var active_type = $("#active_type").val().toLowerCase();
-    var script_name = $("#script_name").val();
-    if (!(active_name && active_type && script_name)) {
-        alert("请完善活动信息");
-        return;
-    }
-    var p = new RegExp(/\W/g);
-    if (p.test(active_type)){
-        alert("活动类型只能由字母数字下划线组成");
-        return;
-    }
-    var tt = script_name.split(".");
-    if (tt.length!=2 || tt[1].toUpperCase()!="PY"){
-        alert("脚本文件必须是py脚本");
-        return;
-    }
-
-    do_active(active_name, active_type, script_name, sids);
-
-});
-
-function syncgm(){
-    update_gm_data();
-}
-
-function add_active_fail(server_name){
-    var tt = "失败：" + server_name + "\n";
-    $("#active_results").text($("#active_results").text() + tt);
-    $("#active_results").scrollTop($("#selected_servers")[0].scrollHeight);
-}
-
-function add_active_success(server_name){
-    var tt = "成功：" + server_name + "\n";
-    $("#active_results").text($("#active_results").text() + tt);
-    $("#active_results").scrollTop($("#selected_servers")[0].scrollHeight);
-}
-
-function checkresult(){
-    console.log("check result");
-}
-
-function checkprocess(){
-    console.log("check process");
-}
-
-
-
-
-const {ipcRenderer} = require("electron");
-
-function quit_app(){
-    ipcRenderer.send("quit_app");
-}
-
-
-
+$.getScript("gui.js");
 </script>
 
 

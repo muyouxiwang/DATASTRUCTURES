@@ -1,6 +1,7 @@
 
 module.paths.push('C:/Users/youease_server01/AppData/Roaming/npm/node_modules');
 
+const {ipcRenderer} = require("electron");
 var request = require('request');
 var fs = require("fs");
 var sqldb = require("sql.js");
@@ -8,17 +9,56 @@ var fb = fs.readFileSync("./data.db");
 var db = new sqldb.Database(fb);
 
 
+var set_command = function(btn, command){
+    btn.bind("click", command.execute);
+}
 
 
+var CheckResultCommand = function(receiver){
+    return {execute: function(){receiver.check();}}
+}
 
 
+var CheckProcess = {check: function(){
+    console.log("check process");
+}}
 
+var CheckProcessCommand = function(receiver){
+    return {execute: function(){receiver.check();}}
+}
 
+var QuitApp = {quit: function(){
+    ipcRenderer.send("quit_app");
+}}
+
+var QuitAppCommand = function(receiver){
+    return {execute: function(){receiver.quit();}}
+}
+
+var SelectCompanyCommand = function(receiver, cid){
+    return {execute: function(){receiver.do_select(cid);}}
+}
+
+var AddSelectCommand = function(receiver){
+    return {execute: function(){receiver.add();}}
+}
+
+var GetOpCommand = function(receiver){
+    return {execute: receiver.getop()}
+}
+
+var DoActiveCommand = function(receiver){
+    return {execute: function(){receiver.do_act();}}
+}
+
+var SyncGmCommand = function(receiver){
+    return {execute: function(){receiver.sync();}}
+}
 
 
 function update_gm_data(){
-//var gm_url = "http://hssg.gm.youease.net"
-var gm_url = "http://192.168.1.6:8889"
+var gm_url = "http://hssg.gm.youease.net"
+//var gm_url = "http://192.168.1.6:8889"
 var data_urls = {
              'company': gm_url + "/get_server_data_for_active/company_datas/", 
              'server': gm_url + "/get_server_data_for_active/server_datas/" 
@@ -165,7 +205,6 @@ function do_active(active_name, active_type, script_name, sids){
     }
     selected_info = {};
 }
-
 
 
 var selected_info = {};

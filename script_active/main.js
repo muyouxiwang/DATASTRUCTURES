@@ -49,7 +49,17 @@ app.on('ready', () => {
     createWindow();
     globalShortcut.register('Ctrl+F12', () => {
             win.webContents.openDevTools();
+    
         });
+
+    globalShortcut.register('F5', () => {
+      win.loadURL(url.format({
+        pathname: path.join(__dirname, 'main.html'),
+        protocol: 'file:',
+        slashes: true
+      }));
+
+    });
 });
 
 // 当全部窗口关闭时退出。
@@ -78,7 +88,7 @@ function do_quit(e, arg){app.quit();}
 
 ipcMain.on("quit_app", do_quit);
 
-
+///
 
 //打包发布指令
 //electron-packager . --win --out=activetool --arch=x64 --version=1.0.0 --electron-version=1.7.10 --overwrite --icon=./static/favicon.ico
