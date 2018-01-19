@@ -11,17 +11,8 @@ var GetOp = {getop: function(){
     return select_all;
 }};
 
-var AddSelect = {add: function (){
-    var selected = [];
-    $("input:checkbox").each(function(){
 
-    if ($(this).prop("checked")){
-        selected.push($(this).val());
-       }});
-    selected_info[curr_company] = [];
-    for (var i=0; i<selected.length; i++){
-            selected_info[curr_company].push(selected[i]);
-        }
+function show_select(){
     var tt = ""
     for (var cid in selected_info){
         tt += companys.get_company_name(cid) + selected_info[cid].length + "/" + servers.get_cm_servers_num(cid) + "\n"
@@ -29,6 +20,21 @@ var AddSelect = {add: function (){
     }
     $("#selected_servers").text(tt);
     $("#selected_servers").scrollTop($("#selected_servers")[0].scrollHeight);
+}
+
+
+var AddSelect = {add: function(){
+    var selected = [];
+    $("input:checkbox").each(function(){
+
+            if ($(this).prop("checked")){
+            selected.push($(this).val());
+            }});
+    selected_info[curr_company] = [];
+    for (var i=0; i<selected.length; i++){
+        selected_info[curr_company].push(selected[i]);
+    }
+    show_select();
 }}
 
 var SelectCompany = {do_select: function(cid){
@@ -64,45 +70,22 @@ function update_company_menu(){
     }
 }
 
-update_company_menu();
+var validataFunc = function(){
+    var validator = new Validator();
+    validator.add($("#active_name").val(), 'noempty:noillegalchar', "活动名称不能有特殊字符");
+    validator.add($("#active_type").val(), 'noempty:onlyW', "活动类型只能由字母数字下划线组成");
+    validator.add($("#script_name").val(), 'noempty:pyonly', "脚本文件必须是py脚本");
 
-function update_history(){
-    var hh = historys.get_historys();
-    $("#acthistory").empty();
-    var tmp = "";
-    for (var i=0; i<hh.length; i++){
-        tmp = "<option value='"+hh[i].id+"'>"+hh[i].actname+"</option>"
-            $("#acthistory").append($(tmp));
-    }
+    return validator.start();
 }
-
-function update_history_panel(){
-    update_history();
-    show_active_name();
-}
-
-update_history_panel();
-
-
-
-
-
-
-function show_active_name(){
-var hid = $("#acthistory").val();
-$("#active_name").val($("select option[value='"+ hid +"']").text());
-$("#active_type").val(historys.get_active_type(hid));
-$("#script_name").val(historys.get_act_script(hid));
-}
-
 
 
 
 var DoActie = {do_act: function(){
     var sids = [];
-    for (var cid in selected_info){
-        for (var i =0; i< selected_info[cid].length; i++){
-            if (sids.indexOf(selected_info[cid][i]) == -1){
+for (var cid in selected_info){
+    for (var i =0; i< selected_info[cid].length; i++){
+        if (sids.indexOf(selected_info[cid][i]) == -1){
                 sids.push(selected_info[cid][i]);
             }
         }
@@ -111,27 +94,40 @@ var DoActie = {do_act: function(){
         alert("请选择运营商");
         return;
     }
-    var active_name = $("#active_name").val();
-    var active_type = $("#active_type").val().toLowerCase();
-    var script_name = $("#script_name").val();
-    if (!(active_name && active_type && script_name)) {
-        alert("请完善活动信息");
-        return;
-    }
-    var p = new RegExp(/\W/g);
-    if (p.test(active_type)){
-        alert("活动类型只能由字母数字下划线组成");
-        return;
-    }
-    var tt = script_name.split(".");
-    if (tt.length!=2 || tt[1].toUpperCase()!="PY"){
-        alert("脚本文件必须是py脚本");
+
+
+    var errorMsg = validataFunc();
+    if (errorMsg){
+        alert(errorMsg);
         return;
     }
 
-    do_active(active_name, active_type, script_name, sids);
+
+    do_active(active_name, active_type, script_name, sids, process_chart(sids.length));
+
+    add_history(active_name, active_type, script_name);
+    selected_info = {};
+    curr_company = -1;
+    show_select();
 }}
 
+
+function process_chart(total){
+    $("#servers").empty();
+    var gi = 1;
+    function process(){
+    $("#servers").circleChart({
+            value: Math.round(100/total) * gi, 
+            color: "#044AE3",
+            animate: false,
+            lineCap: "round",
+            text: "执行中...",
+            redraw: false,
+      });
+        gi += 1;
+    }
+    return process;
+}
 
 
 var SyncGm = {sync: function(){update_gm_data();}}
@@ -140,13 +136,13 @@ var SyncGm = {sync: function(){update_gm_data();}}
 function add_active_fail(server_name){
     var tt = "失败：" + server_name + "\n";
     $("#active_results").text($("#active_results").text() + tt);
-    $("#active_results").scrollTop($("#selected_servers")[0].scrollHeight);
+    $("#active_results").scrollTop($("#active_results")[0].scrollHeight);
 }
 
 function add_active_success(server_name){
     var tt = "成功：" + server_name + "\n";
     $("#active_results").text($("#active_results").text() + tt);
-    $("#active_results").scrollTop($("#selected_servers")[0].scrollHeight);
+    $("#active_results").scrollTop($("#active_results")[0].scrollHeight);
 }
 
 
@@ -158,15 +154,50 @@ var CheckResult = {check: function(){
         area: ['800px', '500px'],
         content: '为人民服务',
         end: function(){
-          layer.tips('Hi', '#about', {tips: 1})
-        } });
+        layer.tips('Hi', '#about', {tips: 1})
+    } });
 }}
+
+
+var ChooseHistory = {choose: function(hid){
+    $("#active_name").val(historys.get_active_name(hid));
+    $("#active_type").val(historys.get_active_type(hid));
+    $("#script_name").val(historys.get_act_script(hid));
+    $("#acthistory").hide();
+    $("#show_acthistory").toggleClass("show_h hide_h");
+}}
+
+var SelectHistory = {select: function(){
+    if ($("#show_acthistory").hasClass("show_h")){
+        var hh = historys.get_historys();
+        $("#acthistory").empty();
+        for (var i=0; i<hh.length; i++){
+            var tmp = $("<li><a href='#' id='his_"+hh[i].id+"'>"+hh[i].actname+"</a></li>");
+            $("#acthistory").append($(tmp)); 
+            set_command($("#his_"+hh[i].id), ChooseHistoryCommand(ChooseHistory, hh[i].id));
+        }
+        $("#acthistory").show();
+    }
+    else {
+        $("#acthistory").hide();
+    }
+    $("#show_acthistory").toggleClass("show_h hide_h");
+}
+}
+
 
 set_command($("#checkresult"), CheckResultCommand(CheckResult));
 set_command($("#checkprocess"), CheckProcessCommand(CheckProcess));
 set_command($("#btn_logout"), QuitAppCommand(QuitApp));
 set_command($("#do_active"), DoActiveCommand(DoActie));
 set_command($("#syncgm"), SyncGmCommand(SyncGm));
+set_command($("#show_acthistory"), SelectHistoryCommand(SelectHistory));
 
+update_company_menu();
+
+
+var selected_info = {};
+
+var curr_company = -1;
 
 

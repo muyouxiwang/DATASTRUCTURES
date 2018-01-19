@@ -10,6 +10,7 @@
 <script src="./static/js/jquery-3.1.1.js"></script>
 <script src="./static/js/jquery.md5.js"></script>
 <script src="./static/js/layer/layer.js"></script>
+<script src="./static/js/circleChart.min.js"></script>
 
 <script src="util.js"></script>
 
@@ -57,14 +58,15 @@
     <label>活动名称：</label>
 
 
-    <select id="acthistory" class="shortinput" style="position:relative;" onchange="show_active_name()"></select>
 
-
+<div id="actname">
     <input class="shortinput" type="text" id="active_name" name="active_name" value=""/>
+    <div id="show_acthistory" class="show_h"></div>
+</div>
 
+<div class="clear"></div>
+    <ul id="acthistory"></ul>
 
-
-    <br/>
 
     <label>活动类型：</label>
     <input class="shortinput" type="text" id="active_type" name="active_type" value=""/> <br/>
@@ -88,7 +90,10 @@
 
     <div class="Clear"></div>
 
-    <div id="servers"></div>
+    <div id="servers">
+    </div>
+    <div id="processchart">
+    </div>
 
 
     </div>

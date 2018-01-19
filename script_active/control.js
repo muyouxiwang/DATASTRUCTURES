@@ -1,4 +1,3 @@
-
 module.paths.push('C:/Users/youease_server01/AppData/Roaming/npm/node_modules');
 
 const {ipcRenderer} = require("electron");
@@ -55,10 +54,18 @@ var SyncGmCommand = function(receiver){
     return {execute: function(){receiver.sync();}}
 }
 
+var SelectHistoryCommand = function(receiver){
+    return {execute: function(){receiver.select();}}
+}
+
+var ChooseHistoryCommand = function(receiver, hid){
+    return {execute: function(){receiver.choose(hid);}}
+}
+
 
 function update_gm_data(){
-var gm_url = "http://hssg.gm.youease.net"
-//var gm_url = "http://192.168.1.6:8889"
+//var gm_url = "http://hssg.gm.youease.net"
+var gm_url = "http://192.168.1.6:8889"
 var data_urls = {
              'company': gm_url + "/get_server_data_for_active/company_datas/", 
              'server': gm_url + "/get_server_data_for_active/server_datas/" 
@@ -72,66 +79,34 @@ var key = $.md5($.md5(interface_key) + ctime);
 var post_data = {"key": key, "ctime": ctime};
 
 
+function do_update_gm_data(data_type){
+    request.post({url: data_urls[data_type], form: post_data}, 
+            function(error, response, body) {
+                if (!error && response.statusCode == 200) {
+                    var data = JSON.parse(body);
+                    var tt = {"company": function(){
+                    companys.update_companys(data);
+                    update_company_menu(); },
 
+                    "server": function(){
+                    servers.update_servers(data);} 
+                    };
+                    tt[data_type]();
+            }
+        });
+}
 
-
-request.post({url: data_urls['company'], form: post_data}, 
-                function(error, response, body) {
-    if (!error && response.statusCode == 200) {
-        sync_gm_data('company', body);
-    }
-});
-
-request.post({url: data_urls['server'], form: post_data}, 
-                function(error, response, body) {
-    if (!error && response.statusCode == 200) {
-        sync_gm_data('server', body);
-    }
-});
+do_update_gm_data("company");
+do_update_gm_data("server");
 
 }
 
 
-function sync_gm_data(data_type, data){
-    var data = JSON.parse(data);
-    if (data_type == "company"){
-        update_companys(data);
-    }
-    if (data_type == "server"){
-        update_servers(data);
-    }
-}
-
-/*
-{"id": 1, "name": "\u6e38\u6613"}
-
-{"name": "mi0102mixi",
-"passwd": "XUGSG1K8p2qrP6ac6n0KaLqPechkpVdnjmJumuBgwwIQBSwbfGVU",
-"ip": "210.168.45.18",
-"comid": 8,
-"lname": "rt5odz8Arvcr9pFG02RNkV104",
-"id": 100867,
-"mkey": "sdlfsdflsdf"}
-*/
-
-function update_companys(company_data){
-    companys.update_companys(company_data);
-    update_company_menu();
-}
 
 
 function add_history(active_name, active_type, script_name){
     historys.add_history(active_name, active_type, script_name);
-    update_history_panel();
 }
-
-function update_servers(server_data){
-    servers.update_servers(server_data);
-}
-
-
-
-
 
 
 function do_one_server_active(active_name, active_type, script_name, sid, count_down){
@@ -153,10 +128,12 @@ function do_one_server_active(active_name, active_type, script_name, sid, count_
         'issync':1};
 
 
-
 add_active_success(server_name);
 console.log("iam done:" + server_name);
 count_down();
+
+
+
 
 
 /*
@@ -170,46 +147,90 @@ count_down();
                     }
                 else {
                     add_active_success(server_name);
-                    count_down();
                     }
             }
             else {
                 add_active_fail(server_name);
                 console.log("net error :" + error);
             }
-            });
+            count_down();
+        });
 */
+
 }
 
 
 function set_counter(count, callback){
     var num = count;
     function count_down(){
+        callback();
         num -= 1;
         if (num == 0){
             console.log("just finished ...");
-            callback();
         }
     }
     return count_down;
 }
 
-function do_active(active_name, active_type, script_name, sids){
-    function add(){
-        add_history(active_name, active_type, script_name);
-    }
-    count_down = set_counter(sids.length, add);
+function do_active(active_name, active_type, script_name, sids, callback){
+    count_down = set_counter(sids.length, callback);
 
     for (var i=0; i< sids.length; i++){
-        do_one_server_active(active_name, active_type, script_name, sids[i], count_down)
+        do_one_server_active(active_name, active_type, script_name, sids[i], count_down);
     }
-    selected_info = {};
 }
 
 
-var selected_info = {};
+var strategies = {
+noillegalchar: function(value, errorMsg){
+    var illegalchars = ["%", "/", "&", "#"];
+    for (var i=0; i<illegalchars.length; i++)
+        if (value.indexOf(illegalchars[i]) !=-1)
+            return errorMsg;
+               },
 
-var curr_company = -1;
+onlyW: function(value, errorMsg){
+    var p = new RegExp(/\W/g);
+    if (p.test(value))
+        return errorMsg;
+                },
+
+pyonly: function(value, errorMsg){
+    var tt = value.split(".");
+    if (tt.length!=2 || tt[1].toUpperCase()!="PY")
+        return errorMsg;
+                },
+
+noempty: function(value, errorMsg){
+    if (!value)
+        return errorMsg;
+                }
+
+}
+
+
+var Validator = function(){
+    this.cache = [];
+}
+
+Validator.prototype.add = function(value, rule, errorMsg){
+    var rules = rule.split(":");
+    for (var i=0; i<rules.length; i++){
+        that = this;
+        (function (x){
+        that.cache.push(function(){
+            return strategies[rules[x]](value, errorMsg);
+                });})(i);
+        }
+}
+
+Validator.prototype.start = function(){
+    for (var i=0; i< this.cache.length; i++){
+        var errorMsg = this.cache[i]();
+        if (errorMsg)
+            return errorMsg;
+    }
+}
 
 
 

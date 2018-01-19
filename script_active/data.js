@@ -30,6 +30,11 @@ add_history: function(active_name, active_type, script_name){
                  db.exec_db(sql);
                  init_data();
              },
+get_active_name: function (hid){
+                     if (_infos[hid]){return _infos[hid].actname;}
+                     else {return "";}
+                 },
+
 get_active_type: function (hid){
                      if (_infos[hid]){return _infos[hid].acttype;}
                      else {return "";}
@@ -122,26 +127,32 @@ get_cm_servers: function (cid){
                 },
 
 get_cm_servers_num: function (cid){
+                if(_com_serv[cid])
                         return _com_serv[cid].length;
                     },
 
 get_server_name: function (sid){
+                if(_server_infos[sid])
                      return _server_infos[sid].name;
                  },
 
 get_server_ip: function (sid){
+                if(_server_infos[sid])
                    return _server_infos[sid].ip;
                },
 
 get_server_passwd: function (sid){
+                if(_server_infos[sid])
                        return _server_infos[sid].passwd;
                    },
 
 get_server_lname: function (sid){
+                if(_server_infos[sid])
                       return _server_infos[sid].lname;
                   },
 
 get_server_mkey: function (sid){
+                if(_server_infos[sid])
                      return _server_infos[sid].mkey;
                  },
 
@@ -173,6 +184,8 @@ var companys = getSingleObj(create_data_companys)(db);
 var servers = getSingleObj(create_data_servers)(db);
 
 var historys = getSingleObj(create_data_historys)(db);
+
+
 
 
 

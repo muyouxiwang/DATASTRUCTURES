@@ -19,6 +19,7 @@
 
 
 /*==============================================*/
+
 #acttitle {
 	color: #FFD700;
 	font-weight:bold;
@@ -120,6 +121,48 @@ li a {
 
 /*==============================================*/
 
+
+
+#show_acthistory {
+    width: 20px;
+    height: 25px;
+    display: block;
+    float: left;
+    margin: 15px auto auto 5px;
+}
+
+.show_h{
+    background: transparent url(images/btn_show_history.png) no-repeat;
+}
+
+.hide_h{
+    background: transparent url(images/btn_hide_history.png) no-repeat;
+}
+
+#acthistory {
+    position: absolute;
+}
+
+#acthistory li{
+    width: 165px;
+    height: 25px;
+	background: #FFF;
+	border: 1px solid #333;
+    display: block;
+}
+
+#acthistory li a{
+    line-height: 25px;
+    text-align: left;
+    display: block;
+    color: #333;
+	font-size: 13px;
+}
+
+#acthistory li a:hover{
+    background: #FFE7BA;
+}
+
 #workzone {
 	width: 660px;
 	/*height: 400px;*/
@@ -156,6 +199,8 @@ form label {
 	font-size: 12px;
 }
 
+
+
 form input,select,textarea{
 	background: #FFE7BA;
 	border: 1px solid #333;
@@ -178,9 +223,10 @@ form textarea{
 }
 
 #active_name{
-    position: absolute;
-    left: 52px;
-    width: 160px;
+    /*position: absolute;*/
+    /*left: 52px;*/
+    width: 165px;
+    float: left;
 }
 
 
@@ -263,4 +309,9 @@ table {
     line-height: 22px;
     display: block;
 }
+
+
+
+
+
 

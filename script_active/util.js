@@ -21,3 +21,12 @@ function get_today_sec(){
     return Math.round(new Date().setHours(0, 0, 0, 0) / 1000);
 }
 
+function sleep(numberMillis) {
+var now = new Date();
+var exitTime = now.getTime() + numberMillis;
+while (true) {
+now = new Date();
+if (now.getTime() > exitTime)
+    return;
+}
+}
