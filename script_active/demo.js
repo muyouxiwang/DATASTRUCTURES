@@ -2,6 +2,7 @@ const path = require('path')
 const url = require('url')
 
 module.paths.push('C:/Users/youease_server01/AppData/Roaming/npm/node_modules')
+module.paths.push('C:/Users/muyouxiwang/AppData/Roaming/npm/node_modules')
 
 
 
