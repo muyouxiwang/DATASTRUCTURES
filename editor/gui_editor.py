@@ -12,6 +12,8 @@ t = tk.Text(f)
 
 t.insert("1.0", edit.get_content())
 
+#t.config(state = tk.DISABLED)
+
 
 
 t.tag_config("highstring", background="yellow")
@@ -33,27 +35,49 @@ def do(e):
         highs.add((x, y))
             
 
-def setmark(pos = "2.0"):
-    print t.get("sel.first", "sel.last")
-    t.config(state=tk.DISABLED)
-    #t.tag_add("sel", '2.0', '5.0')
-    #t.mark_set("insert", "5.8")
+def change_to_v_status():
+    #print t.get("sel.first", "sel.last")
+    t.config(state = "disabled")
+    t.tag_add("highstring", "insert", "insert + 1c")
 
 
-def move(e):
-    print dir(e)
+def move_down(e):
+    #print dir(e)
     #t.tag_add("sel", "sel.first+5 lines", "sel.last+1 lines")
+    t.tag_remove("highstring", "insert")#, "insert + 1c")
+    t.mark_set("insert", "insert + 1 lines")
+    t.tag_add("highstring", "insert")#, "insert + 1 lines + 1c")
+    print t.get("insert", "insert + 1c")
 
-t.unbind_all("<KeyRelease-j>")
-t.unbind_all("<KeyPress-j>")
-#t.event_delete("<KeyRelease>")
-#t.event_delete("<KeyPress-j>")
-t.bind("<KeyPress-j>", move)
+def move_right(e):
+    t.tag_remove("highstring", "insert")#, "insert + 1c")
+    t.mark_set("insert", "insert + 1c")
+    t.tag_add("highstring", "insert")#, "insert + 1 lines + 1c")
+    print t.get("insert", "insert + 1c")
+
+def move_up(e):
+    t.tag_remove("highstring", "insert")#, "insert + 1c")
+    t.mark_set("insert", "insert - 1 lines")
+    t.tag_add("highstring", "insert")#, "insert + 1 lines + 1c")
+    print t.get("insert", "insert + 1c")
+
+def move_left(e):
+    t.tag_remove("highstring", "insert")#, "insert + 1c")
+    t.mark_set("insert", "insert - 1c")
+    t.tag_add("highstring", "insert")#, "insert + 1 lines + 1c")
+    print t.get("insert", "insert + 1c")
+
+    
+
+t.bind("<KeyPress-j>", move_down)
+t.bind("<KeyPress-k>", move_up)
+t.bind("<KeyPress-h>", move_left)
+t.bind("<KeyPress-l>", move_right)
 
 
 c = tk.Text(f, height=3)
 c.bind("<KeyRelease>", do)
-b = tk.Button(f, text="setmark", command = setmark)
+b = tk.Button(f, text="change_v", command = change_to_v_status)
 
 t.pack()
 c.pack()
