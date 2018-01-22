@@ -33,12 +33,31 @@ def do(e):
         highs.add((x, y))
             
 
+def setmark(pos = "2.0"):
+    print t.get("sel.first", "sel.last")
+    t.config(state=tk.DISABLED)
+    #t.tag_add("sel", '2.0', '5.0')
+    #t.mark_set("insert", "5.8")
+
+
+def move(e):
+    print dir(e)
+    #t.tag_add("sel", "sel.first+5 lines", "sel.last+1 lines")
+
+t.unbind_all("<KeyRelease-j>")
+t.unbind_all("<KeyPress-j>")
+#t.event_delete("<KeyRelease>")
+#t.event_delete("<KeyPress-j>")
+t.bind("<KeyPress-j>", move)
+
 
 c = tk.Text(f, height=3)
 c.bind("<KeyRelease>", do)
+b = tk.Button(f, text="setmark", command = setmark)
 
 t.pack()
 c.pack()
+b.pack()
 f.pack()
 
 root.mainloop()
