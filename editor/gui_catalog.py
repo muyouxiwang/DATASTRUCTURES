@@ -1,50 +1,57 @@
 # -*- coding=utf-8 -*-
-import Tkinter as tk
 
+import Tkinter as tk
 import edit
 
-root = tk.Tk()
 
 
-f = tk.Frame(root)
-
-t = tk.Text(f)
+edit.create_catalog()
 
 
-def get_refresh(p):
-    def _(e):
-        if p in edit.the_catalog:
-            edit.the_catalog[p].toggle()
-            show()
-    return _
-        
+class GuiCatalog(tk.Tk):
 
-def show():
-    t.config(cursor = "arrow",
-            #insertwidth = 10,
-            insertbackground = "brown")
-    t.delete("1.0", tk.END)
-    i = 1
-    for n, p in edit.root.get_series():
-        t.insert("%d.0" % i, n)
-        t.tag_add(p, "%d.0" % i, "%d.%d" % (i, len(n)))
-        i += 1
+    def __init__(self):
+        tk.Tk.__init__(self)
+        f = tk.Frame(self)
+        f.pack()
 
-        t.tag_bind(p, '<Button-1>', get_refresh(p))
-
-        if n.strip().startswith("+"):
-            t.tag_config(p, foreground = "red")
-        if n.strip().startswith("*"):
-            t.tag_config(p, foreground = "blue")
+        self.t = tk.Text(f)
+        self.t.pack()
 
 
 
-show()
+    def get_refresh(self, p):
+        def _(e):
+            if p in edit.the_catalog:
+                edit.the_catalog[p].toggle()
+                print "shit"
+                self.show()
+        return _
+            
 
-t.pack()
-f.pack()
+    def show(self):
+        self.t.config(cursor = "arrow",
+                #insertwidth = 10,
+                insertbackground = "brown")
+        self.t.delete("1.0", tk.END)
+        i = 1
+        for n, p in edit.root.get_series():
+            self.t.insert("%d.0" % i, n)
+            self.t.tag_add(p, "%d.0" % i, "%d.%d" % (i, len(n)))
+            i += 1
 
-root.mainloop()
+            self.t.tag_bind(p, '<Button-1>', self.get_refresh(p))
+
+            if n.strip().startswith("+"):
+                self.t.tag_config(p, foreground = "red")
+            if n.strip().startswith("*"):
+                self.t.tag_config(p, foreground = "blue")
+
+    def start(self):
+
+        self.show()
+        self.mainloop()
 
 
+GuiCatalog().start()
 

@@ -77,6 +77,7 @@ def catalog(d, node, depth = 0):
             
 
 def create_catalog():
+    global root
     root = Tree(os.path.basename(root_dir), os.path.abspath(root_dir), toggle=True)
     catalog(root_dir, root)
 

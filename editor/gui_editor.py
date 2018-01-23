@@ -3,91 +3,76 @@
 import Tkinter as tk
 
 import edit
+import editor_status
 
-root = tk.Tk()
 
-f = tk.Frame(root)
-
-t = tk.Text(f)
-
-t.insert("1.0", edit.get_content())
-
-#t.config(state = tk.DISABLED)
+class GuiEditor(tk.Tk):
+    def __init__(self, content):
+        tk.Tk.__init__(self)
 
 
 
-t.tag_config("highstring", background="yellow")
+        f = tk.Frame(self)
+        f.pack()
 
-highs = set()
-def do(e):
-    s = c.get("1.0", "1.end").encode("utf-8")
-    searched = edit.search(s)
-    for item in highs:
-        if item not in searched:
-            t.tag_remove("highstring",
-            item[0], item[1])
+        self.t = tk.Text(f)
+        self.t.insert("1.0", content)
 
-    highs.clear()
-    for i, j in searched:
-        x = "%d.%d" % (i+1, j),
-        y ="%d.%d" % (i+1, j + len(s.decode("utf-8")))
-        t.tag_add("highstring", x, y)
-        highs.add((x, y))
-            
+        self.t.pack()
+        self.t.mark_set("insert", "1.0")
 
-def change_to_v_status():
-    #print t.get("sel.first", "sel.last")
-    t.config(state = "disabled")
-    t.tag_add("highstring", "insert", "insert + 1c")
+        #self.c = tk.Text(f, height=3)
+        self.v = tk.StringVar()
+        self.c = tk.Entry(f, textvariable = self.v)
 
 
-def move_down(e):
-    #print dir(e)
-    #t.tag_add("sel", "sel.first+5 lines", "sel.last+1 lines")
-    t.tag_remove("highstring", "insert")#, "insert + 1c")
-    t.mark_set("insert", "insert + 1 lines")
-    t.tag_add("highstring", "insert")#, "insert + 1 lines + 1c")
-    print t.get("insert", "insert + 1c")
-
-def move_right(e):
-    t.tag_remove("highstring", "insert")#, "insert + 1c")
-    t.mark_set("insert", "insert + 1c")
-    t.tag_add("highstring", "insert")#, "insert + 1 lines + 1c")
-    print t.get("insert", "insert + 1c")
-
-def move_up(e):
-    t.tag_remove("highstring", "insert")#, "insert + 1c")
-    t.mark_set("insert", "insert - 1 lines")
-    t.tag_add("highstring", "insert")#, "insert + 1 lines + 1c")
-    print t.get("insert", "insert + 1c")
-
-def move_left(e):
-    t.tag_remove("highstring", "insert")#, "insert + 1c")
-    t.mark_set("insert", "insert - 1c")
-    t.tag_add("highstring", "insert")#, "insert + 1 lines + 1c")
-    print t.get("insert", "insert + 1c")
-
-    
-
-t.bind("<KeyPress-j>", move_down)
-t.bind("<KeyPress-k>", move_up)
-t.bind("<KeyPress-h>", move_left)
-t.bind("<KeyPress-l>", move_right)
+        self.d = tk.Entry(f)
 
 
-c = tk.Text(f, height=3)
-c.bind("<KeyRelease>", do)
-b = tk.Button(f, text="change_v", command = change_to_v_status)
+        self.l = tk.Label(f)
 
-t.pack()
-c.pack()
-b.pack()
-f.pack()
+        self.t.pack()
 
-root.mainloop()
+        self.l.pack()
 
 
 
+        self.t.tag_config("highlight", background="yellow")
+
+
+        self.cur_status = editor_status.NormalStatus(self, self.t)
+
+
+    def remove_highlight(self, index1, index2 = None):
+        self.t.tag_remove("highlight", index1, index2)
+
+    def add_highlight(self, index1, index2 = None):
+        self.t.tag_add("highlight", index1, index2)
+
+    def set_insert_index(self, index):
+        self.t.mark_set("insert", index)
+
+    def add_select_region(self, index1, index2 = None):
+        self.t.tag_add("sel", index1, index2)
+
+    def focus_index(self, index):
+        self.t.see(index)
+
+    def move_visual_cursor(self, toindex):
+        self.remove_highlight("insert")
+        self.set_insert_index(toindex)
+        self.add_highlight("insert")
+        
+
+
+    def set_label(self, info):
+        self.l.config(text = info)
+
+    def start(self):
+        self.mainloop()
+
+
+GuiEditor(edit.get_content()).start()
 
 
 

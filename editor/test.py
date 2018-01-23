@@ -4,20 +4,33 @@
 
 
 
+import Tkinter as tk
 
 
-#print len(u"为人民")
-#print len(u"a为人民")
-#print len("a为人民dd")
+name = "gui_catalog" 
+
+root = tk.Tk()
+
+f = tk.Frame(root)
 
 
-import re
+t = tk.Text(f)
 
-p = re.compile("(abc)")
+v = tk.StringVar()
+c = tk.Entry(f, textvariable = v)
+c.focus_set()
+
+def do_command(e):
+    eval(v.get())
+
+c.bind("<Return>", do_command)
+
+t.pack()
+c.pack()
 
 
-t = "lsfabcsdeabclsdfabclsdl"
 
+f.pack()
 
-print t.index("abc")
-print t.find("abc")
+root.mainloop()
+
