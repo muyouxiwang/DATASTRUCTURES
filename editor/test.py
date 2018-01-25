@@ -36,8 +36,8 @@ def test_gui():
 
     root.mainloop()
 
-t = "abcksdlfsfabcsldfsabcieiowe"
-
-p = re.compile("(abc)")
-p.findall(t)
+t = '''def handle_special(self, special_key):'''
+p = re.compile("[a-zA-Z_]+")
+d = p.search(t)
+print d
 

@@ -19,6 +19,7 @@ class GuiEditor(tk.Tk):
     def __init__(self, content):
         tk.Tk.__init__(self)
 
+        self.content = content
 
 
         self.clipboard = ""
@@ -27,7 +28,7 @@ class GuiEditor(tk.Tk):
         f = tk.Frame(self)
 
         self.t = tk.Text(f, wrap=tk.NONE)
-        self.t.insert("1.0", content)
+        self.t.insert("1.0", self.content.get_content())
 
         self.t.pack()
         self.t.mark_set("insert", "1.0")
@@ -54,7 +55,9 @@ class GuiEditor(tk.Tk):
 
 
         self.t.bind("<KeyPress>", self.handle_keypress)
-        self.t.bind("<Escape>", self.back_to_normal)
+        self.t.bind("<Escape>", self.handle_special("escape"))
+        self.t.bind("<Control-e>", self.handle_special("c_e"))
+        self.t.bind("<Control-y>", self.handle_special("c_y"))
 
 
         self.y_scroll = Scrollbar(f, orient = tk.VERTICAL)
@@ -73,18 +76,19 @@ class GuiEditor(tk.Tk):
 
         f.pack()
 
-    def syntax(self, e):
-        self.t.search
-
-
-    def back_to_normal(self, e):
-        self.cur_status.handle_escape()
-        return "break"
+    def handle_special(self, special_key):
+        def hanler(e):
+            func = getattr(self.cur_status, "handle_%s" % special_key, None)
+            if func:
+                func()
+                return "break"
+        return hanler
 
     def handle_keypress(self, e):
         print "keychar is(%s), keycode is (%s)" % (e.char, e.keycode)
 
-        self.cur_status.handle_keypress(e.char)
+        if not self.cur_status.handle_keypress(e.char):
+            return "break" #这样就能阻止事件进一步传播
 
 
     def remove_highlight(self, index1, index2 = None):
@@ -108,6 +112,10 @@ class GuiEditor(tk.Tk):
         try: return self.t.get("sel.first", "sel.last")
         except: return ""
 
+
+    def get_text(self, index1, index2 = None):
+        return self.t.get(index1, index2)
+
     def add_text(self, index, text):
         print "shit !!!!!!!!!!"
         self.t.insert(index, text)
@@ -126,21 +134,32 @@ class GuiEditor(tk.Tk):
         self.add_highlight("insert")
 
 
-        if self.t.bbox(toindex) is None:
-            if direc == "N":
-                self.t.yview_scroll(-2, tk.UNITS)
-            if direc == "S":
-                self.t.yview_scroll(2, tk.UNITS)
-            if direc == "W":
-                self.t.xview_scroll(-2, tk.UNITS)
-            if direc == "E":
-                self.t.xview_scroll(2, tk.UNITS)
+        #if self.t.bbox(toindex) is None:
+            #if direc == "N":
+                #self.t.yview_scroll(-2, tk.UNITS)
+            #if direc == "S":
+                #self.t.yview_scroll(2, tk.UNITS)
+            #if direc == "W":
+                #self.t.xview_scroll(-2, tk.UNITS)
+            #if direc == "E":
+                #self.t.xview_scroll(2, tk.UNITS)
             
         if self.t.bbox(toindex) is None:
             self.t.see(toindex)
+    
+    def is_lost_vision(self, index):
+        return self.t.bbox(index) is None
+
+    def move_vision(self, n, u_type = "lines"):
+        self.t.yview_scroll(n, {"lines": tk.UNITS,
+                                "pages": tk.PAGES}[u_type])
 
     def get_insert_index(self):
         return self.t.index("insert")
+
+    def get_index(self, index):
+        return self.t.index(index)
+
 
     def get_win_top_index(self):
         cur_line = int(float(self.t.index("insert")))
@@ -158,9 +177,10 @@ class GuiEditor(tk.Tk):
             if self.t.bbox("%d.0" % cur_line) is None:
                 return "%d.0" % (cur_line - 1)
         return "%d.0" % cur_line
-        
 
-        
+    def get_win_middle_index(self):
+        return "%d.0" % ((int(float(self.get_win_bottom_index())) + 
+                    int(float(self.get_win_top_index()))) / 2)
 
 
     def set_label(self, info):
@@ -170,7 +190,8 @@ class GuiEditor(tk.Tk):
         self.mainloop()
 
 
-GuiEditor(edit.get_content()).start()
+content = edit.Content("./code_demo.py")
+GuiEditor(content).start()
 
 
 
