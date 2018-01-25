@@ -1,6 +1,9 @@
 # -*- coding=utf-8 -*-
 
+import traceback
+
 import edit
+import Tkinter as tk
 
 class EditorStatus(object):
     def __init__(self, editor, text):
@@ -10,38 +13,24 @@ class EditorStatus(object):
         self.t.focus_set()
 
         self.key_tmp = ""
+        
 
 
-        self.t.bind("<KeyPress>", self.handle_keypress)
-        self.t.bind("<Escape>", self.back_to_normal)
 
-    def handle_keypress(self, e):
-        print "keychar is(%s), keycode is (%s)" % (e.char, e.keycode)
 
-        if self.STATUS == "普通模式" and self.key_tmp:
-            self.key_tmp += e.char
-            if len(self.key_tmp) >= 3:
-                self.key_tmp = ""
-            func = self.multi_key_map.get(self.key_tmp)
-            if func:
-                self.key_tmp = ""
-                return func()
-        else:
-            s = {"/": "slash",
-                ":": "colon"}.get(e.char, e.char)
-            func = getattr(self, "handle_%s" % s, None)
-            if func: return func()
-            else: self.key_tmp += e.char
 
-    def back_to_normal(self, e):
+    def handle_keypress(self, char):
+        s = {"/": "slash",
+            ":": "colon"}.get(char, char)
+        func = getattr(self, "handle_%s" % s, None)
+        if func: return func()
+        else: self.key_tmp += char
+
+    def handle_escape(self):
         # 清空缓存命令
         self.key_tmp = ""   
-        # 去掉v模式下的高亮选择，没有选中的情况下会报错，所以用try
-        try: self.t.tag_remove("sel", "sel.first", "sel.last")
-        except: pass
+        self.editor.remove_all_select_region()
         self.editor.cur_status = NormalStatus(self.editor, self.t)
-
-        return "break"
 
     def show_some_position(self):
         print "insert point(%s)" % self.t.get("insert")
@@ -61,15 +50,40 @@ class NormalStatus(EditorStatus):
         self.multi_key_map = {"gg": self.go_to_begin}
 
 
+    def handle_keypress(self, char):
+        self.key_tmp += char
+        if len(self.key_tmp) >= 3:
+            self.key_tmp = ""
+        func = self.multi_key_map.get(self.key_tmp)
+        if func:
+            self.key_tmp = ""
+            return func()
+        return super(NormalStatus, self).handle_keypress(char)
+
     def go_to_begin(self):
 
-        self.editor.move_visual_cursor("1.0")
+        self.editor.move_visual_cursor("1.0", "N")
 
         self.editor.focus_index("insert")
         print self.t.get("insert", "insert + 1c")
 
+    def handle_H(self):
+        win_top_index = self.editor.get_win_top_index()
+        self.editor.move_visual_cursor(win_top_index, "N")
+
+    def handle_L(self):
+        win_bottom_index = self.editor.get_win_bottom_index()
+        self.editor.move_visual_cursor(win_bottom_index, "S")
+
+    def handle_M(self):
+        win_top_index = self.editor.get_win_top_index()
+        win_bottom_index = self.editor.get_win_bottom_index()
+        win_mid_index = "%d.0" % ((int(float(win_bottom_index)) + 
+                                int(float(win_top_index))) / 2)
+        self.editor.move_visual_cursor(win_mid_index)
+
     def handle_G(self):
-        self.editor.move_visual_cursor("end")
+        self.editor.move_visual_cursor("end", "S")
 
         self.editor.focus_index("insert")
         print self.t.get("insert", "insert + 1c")
@@ -84,19 +98,19 @@ class NormalStatus(EditorStatus):
 
 
     def handle_j(self):
-        self.editor.move_visual_cursor("insert + 1 lines")
+        self.editor.move_visual_cursor("insert + 1 lines", "S")
         print self.t.get("insert", "insert + 1c")
 
     def handle_l(self):
-        self.editor.move_visual_cursor("insert + 1c")
+        self.editor.move_visual_cursor("insert + 1c", "E")
         print self.t.get("insert", "insert + 1c")
 
     def handle_k(self):
-        self.editor.move_visual_cursor("insert - 1 lines")
+        self.editor.move_visual_cursor("insert - 1 lines", "N")
         print self.t.get("insert", "insert + 1c")
 
     def handle_h(self):
-        self.editor.move_visual_cursor("insert - 1c")
+        self.editor.move_visual_cursor("insert - 1c", "W")
         print self.t.get("insert", "insert + 1c")
 
     def handle_i(self):
@@ -104,10 +118,19 @@ class NormalStatus(EditorStatus):
         return "break"  #这样就能阻止事件进一步传播
 
     def handle_v(self):
-        self.editor.cur_status = VisualStatus(self.editor, self.t)
+        self.editor.cur_status = VisualStatus(self.editor, self.t, False)
         return "break"
 
+    def handle_V(self):
+        self.editor.cur_status = VisualStatus(self.editor, self.t, True)
+        return "break"
 
+    def handle_p(self):
+        self.editor.cur_status = InsertStatus(self.editor, self.t)
+        if self.editor.clipboard:
+            index = self.editor.get_insert_index()
+            self.editor.add_text(index, self.editor.clipboard)
+        self.handle_escape()
 
 
 class InsertStatus(EditorStatus):
@@ -127,52 +150,58 @@ class InsertStatus(EditorStatus):
 
 class VisualStatus(EditorStatus):
     STATUS = "可视模式 "
-    def __init__(self, editor, text):
+    def __init__(self, editor, text, line_mode = False):
         super(VisualStatus, self).__init__(editor, text)
 
-        self.key_tmp = ""
-        self.t.config(state = "disabled")
-        self.editor.add_highlight("insert", "insert + 1c")
+        self.line_mode = line_mode
 
-        self.t.mark_set("v_first", "insert")
-    
+        self.t.config(state = "disabled")
         self.multi_key_map = {}
+
+
+        
+        if self.line_mode:
+            self.editor.move_visual_cursor("insert linestart")
+        self.start_index = self.editor.get_insert_index()
 
 
 
     def handle_j(self):
-        self.editor.remove_highlight("insert")
-        self.t.tag_remove("sel", "v_first", "insert")
-        self.editor.add_select_region("insert", "insert + 1 lines")
-        self.editor.set_insert_index("insert + 1 lines")
-        self.editor.add_highlight("insert")
+        self.editor.move_visual_cursor("insert + 1 lines", "S")
+    
+        self.editor.remove_all_select_region()
+        self.editor.add_select_region(self.start_index, "insert", self.line_mode)
 
-        self.show_some_position()
 
 
     def handle_l(self):
-        self.editor.remove_highlight("insert")
-        self.editor.add_select_region("insert", "insert + 1c")
-        self.editor.set_insert_index("insert + 1c")
-        self.editor.add_highlight("insert")
-
-        self.show_some_position()
+        if self.line_mode:
+            return
+        self.editor.move_visual_cursor("insert + 1c", "E")
+        self.editor.remove_all_select_region()
+        self.editor.add_select_region(self.start_index, "insert")
 
     def handle_k(self):
-        self.editor.remove_highlight("insert")
-        self.editor.add_select_region("insert", "insert - 1 lines")
-        self.editor.set_insert_index("insert - 1 lines")
-        self.editor.add_highlight("insert")
+        self.editor.move_visual_cursor("insert - 1 lines", "N")
+        self.editor.remove_all_select_region()
 
-        self.show_some_position()
+        self.editor.add_select_region(self.start_index, "insert", self.line_mode)
 
     def handle_h(self):
-        self.editor.remove_highlight("insert")
-        self.editor.add_select_region("insert", "insert - 1c")
-        self.editor.set_insert_index("insert - 1c")
-        self.editor.add_highlight("insert")
+        if self.line_mode:
+            return
+        self.editor.move_visual_cursor("insert - 1c", "W")
+        self.editor.remove_all_select_region()
+        self.editor.add_select_region(self.start_index, "insert")
 
-        self.show_some_position()
+    def handle_y(self):
+        text = self.editor.get_select_region()
+        print "the select is +++%s+++" % text
+        if text:
+            self.editor.clipboard = text
+        self.handle_escape()
+
+
 
 class CommandStatus(EditorStatus):
     STATUS = "命令模式 "
@@ -184,6 +213,8 @@ class CommandStatus(EditorStatus):
         self.c = self.editor.c
         self.v = self.editor.v
 
+
+        self.editor.remove_highlight("insert")
         self.show_command_input()
         self.c.bind("<Return>", self.input_finish)
         self.c.bind("<KeyRelease>", self.do_search)
@@ -192,13 +223,14 @@ class CommandStatus(EditorStatus):
 
     def back_to_normal(self):
         self.v.set("")
-        self.c.pack_forget()
-        super(CommandStatus, self).back_to_normal(None)
+        #self.c.pack_forget()
+        self.c.grid_forget()
+        self.handle_escape()
 
     def show_command_input(self):
         self.v.set({"search": "/", "command": ":"}[self.cmd_type])
         self.c.icursor("end")
-        self.c.pack()
+        self.c.grid()
         
         self.c.focus_set()
 
@@ -209,9 +241,15 @@ class CommandStatus(EditorStatus):
         self.back_to_normal()
 
     def do_command(self):
-        cmd = self.v.get().encode("utf-8")[1:]
-        if cmd:
-            print "do command(%s)" % cmd
+        #cmd = self.v.get().encode("utf-8")[1:]
+        #if cmd:
+            #print "do command(%s)" % cmd
+        try:
+            print eval(self.v.get()[1:])
+        except:
+            print traceback.format_exc()
+        self.v.set("")
+
 
     def do_search(self, e):
         if len(self.v.get()) == 0:

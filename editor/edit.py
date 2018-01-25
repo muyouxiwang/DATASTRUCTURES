@@ -84,9 +84,14 @@ def create_catalog():
 
 
 def get_content():
+    content = []
+    count = 1
     with open("./code_demo.py", "r") as r:
-        content = r.read()
-    return content
+        for line in r:
+            line = "%d: %s" % (count, line)
+            content.append(line)
+            count += 1
+    return "".join(content)
 
 def search_all(s, p):
     result = []

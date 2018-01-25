@@ -1,36 +1,43 @@
 # -*- coding=utf-8 -*-
+import re
 
 
-
-
+import edit
 
 import Tkinter as tk
 
+def test_gui():
 
-name = "gui_catalog" 
+    root = tk.Tk()
 
-root = tk.Tk()
-
-f = tk.Frame(root)
-
-
-t = tk.Text(f)
-
-v = tk.StringVar()
-c = tk.Entry(f, textvariable = v)
-c.focus_set()
-
-def do_command(e):
-    eval(v.get())
-
-c.bind("<Return>", do_command)
-
-t.pack()
-c.pack()
+    f = tk.Frame(root)
 
 
+    t = tk.Text(f)
 
-f.pack()
+    t.insert("1.0", edit.get_content())
 
-root.mainloop()
+    v = tk.StringVar()
+    c = tk.Entry(f, textvariable = v)
+    c.focus_set()
+
+    def do_command(e):
+        eval(v.get())
+        v.set("")
+
+    c.bind("<Return>", do_command)
+
+    t.pack()
+    c.pack()
+
+
+
+    f.pack()
+
+    root.mainloop()
+
+t = "abcksdlfsfabcsldfsabcieiowe"
+
+p = re.compile("(abc)")
+p.findall(t)
 
