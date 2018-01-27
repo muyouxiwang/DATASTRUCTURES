@@ -8,7 +8,6 @@ class EditorStatus(object):
     def __init__(self, editor, text):
         self.editor = editor
         self.t = text
-        self.editor.set_label(self.STATUS)
         self.t.focus_set()
 
         self.key_tmp = ""
@@ -56,7 +55,7 @@ class EditorStatus(object):
         self.digit_prefix = ""
 
         self.editor.remove_all_select_region()
-        self.editor.cur_status = NormalStatus(self.editor, self.t)
+        self.editor.set_cur_status(NormalStatus(self.editor, self.t)) 
 
     def show_some_position(self):
         print "insert point(%s)" % self.t.get("insert")
@@ -131,12 +130,12 @@ class NormalStatus(EditorStatus):
         self.editor.focus_index("insert")
 
     def handle_slash(self):
-        self.editor.cur_status = CommandStatus(self.editor, self.t, "search")
-        return "break"
+        self.editor.set_cur_status(CommandStatus(self.editor, self.t, "search")) 
+        return
 
     def handle_colon(self):
-        self.editor.cur_status = CommandStatus(self.editor, self.t, "command")
-        return "break"
+        self.editor.set_cur_status(CommandStatus(self.editor, self.t, "command"))  
+        return
 
     def handle_upco(self):
         self.editor.move_visual_cursor("insert linestart")
@@ -199,23 +198,21 @@ class NormalStatus(EditorStatus):
         print self.t.get("insert", "insert + 1c")
 
     def handle_i(self):
-        self.editor.cur_status = InsertStatus(self.editor, self.t)
-        return "break"  
+        self.editor.set_cur_status(InsertStatus(self.editor, self.t)) 
+        return 
 
     def handle_v(self):
-        self.editor.cur_status = VisualStatus(self.editor, self.t, False)
-        return "break"
+        self.editor.set_cur_status(VisualStatus(self.editor, self.t, False)) 
+        return
 
     def handle_V(self):
-        self.editor.cur_status = VisualStatus(self.editor, self.t, True)
-        return "break"
+        self.editor.set_cur_status(VisualStatus(self.editor, self.t, True)) 
+        return
 
     def handle_p(self):
-        self.editor.cur_status = InsertStatus(self.editor, self.t)
         if self.editor.clipboard:
             index = self.editor.get_insert_index()
             self.editor.add_text(index, self.editor.clipboard)
-        self.handle_escape()
 
     def handle_c_e(self):
         self.editor.move_vision(1)
@@ -241,6 +238,13 @@ class NormalStatus(EditorStatus):
         self.editor.move_visual_cursor("%d.%d" % (x + 1,
                                                 y))
         
+    def handle_b(self):
+        index = self.editor.get_insert_index().split(".")
+        x, y = self.editor.content.get_word_start(int(index[0]) - 1,
+                                    int(index[1]))
+        self.editor.move_visual_cursor("%d.%d" % (x + 1, y))
+        
+
 
 
 class InsertStatus(EditorStatus):
@@ -390,6 +394,11 @@ class VisualStatus(NormalStatus):
         super(VisualStatus, self).handle_e()
         self._add_select_region()
 
+    def handle_b(self):
+        super(VisualStatus, self).handle_b()
+        self._add_select_region()
+        
+
     def handle_upco(self):
         super(VisualStatus, self).handle_upco()
         self._add_select_region()
@@ -397,7 +406,6 @@ class VisualStatus(NormalStatus):
     def handle_dollar(self):
         super(VisualStatus, self).handle_dollar()
         self._add_select_region()
-
 
     def handle_y(self):
         text = self.editor.get_select_region()
@@ -426,73 +434,74 @@ class CommandStatus(EditorStatus):
     
         self.cmd_type = cmd_type
 
-        self.c = self.editor.c
-        self.v = self.editor.v
-
-
         self.editor.remove_highlight("insert")
         self.show_command_input()
-        self.c.bind("<Return>", self.input_finish)
-        self.c.bind("<KeyRelease>", self.do_search)
 
         self.highs = set()
 
+    def handle_keypress(self, char):
+        return True
+
     def back_to_normal(self):
-        self.v.set("")
-        #self.c.pack_forget()
-        self.c.grid_forget()
+        self.editor.clear_command_input()
+        self.editor.hide_command_input()
         self.handle_escape()
 
     def show_command_input(self):
-        self.v.set({"search": "/", "command": ":"}[self.cmd_type])
-        self.c.icursor("end")
-        self.c.grid(sticky = tk.E+tk.W)
-        
-        self.c.focus_set()
+        self.editor.add_command_text("1.0", {"search": "/", "command": ":"}[self.cmd_type])
+        self.editor.show_command_input()
 
 
-    def input_finish(self, e):
+    def handle_return(self):
         if self.cmd_type == "command":
             self.do_command()
         self.back_to_normal()
+        return
 
     def do_command(self):
-        cmd = self.v.get().encode("utf-8")[1:]
+        cmd = self.editor.get_command_text()[1:]
 
         if cmd == "q":
             self.editor.quit()
-            return
-        #if cmd:
-            #print "do command(%s)" % cmd
-        try:
-            print eval(cmd)
-        except:
-            print traceback.format_exc()
-        self.v.set("")
+
+        if cmd.startswith("e "):
+            filepath = cmd[2:].strip()
+            self.editor.open_new_file(filepath)
+
+        # try:
+        #     print eval(cmd)
+        # except:
+        #     print traceback.format_exc()
+
+        self.editor.clear_command_input()
 
 
-    def do_search(self, e):
-        if len(self.v.get()) == 0:
+    def handle_release(self):
+        text = self.editor.get_command_text()
+        if not text:
             self.back_to_normal()
+            return
 
         if self.cmd_type == "command":
             return
 
-        
-        s = self.v.get().encode("utf-8")[1:]
-        searched = self.editor.content.search(s)
+        p = text[1:]
+        if not p:
+            return
+        searched = self.editor.content.search(p)
         for item in self.highs:
             if item not in searched:
-                self.t.tag_remove("highlight",
-                item[0], item[1])
+                self.editor.remove_highlight(item[0], item[1])
 
         self.highs.clear()
         for i, j in searched:
             x = "%d.%d" % (i+1, j),
-            y = "%d.%d" % (i+1, j + len(s.decode("utf-8")))
+            y = "%d.%d" % (i+1, j + len(p.decode("utf-8")))
             self.editor.add_highlight(x, y)
             self.highs.add((x, y))
 
+    def handle_tab(self):
+        pass
 
   # 正常模式 (Normal-mode) 
   # 插入模式 (Insert-mode)
@@ -500,3 +509,4 @@ class CommandStatus(EditorStatus):
   # 可视模式 (Visual-mode)
 
 
+  

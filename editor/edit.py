@@ -7,9 +7,7 @@ import re
 
 
 
-the_catalog = {}
 
-root_dir = "E:/svn_hs2_gm"
 
 
 class Tree(object):
@@ -22,8 +20,6 @@ class Tree(object):
 
         self.name = self.depth * "    " + self.name + "\n"
         self.abspath = abspath
-
-        the_catalog[self.abspath] = self
 
     def toggle(self):
         self._toggle = not self._toggle
@@ -48,44 +44,57 @@ class Tree(object):
             
 
 
-def catalog_1(d, depth = 0):
-    depth += 1
-    catalog_info = "+%s\n" % os.path.basename(d)
-    ns = os.listdir(d)
-    for n in ns:
-        if n.startswith("."):
-            continue
-        p = os.path.join(d, n)
-        if os.path.isdir(p):
-            catalog_info += catalog_1(p, depth)
-        else:
-            catalog_info += "%s-%s\n" % (depth * " ", n) 
-    return catalog_info
 
-def catalog(d, node, depth = 0):
-    depth += 1
-    for n in os.listdir(d):
-        if n.startswith("."):
-            continue
-        p = os.path.join(d, n)
-        if os.path.isdir(p):
-            c = Tree(n, p, "dir", depth)
-            node.add_child(c)
-            catalog(p, c, depth)
-        else:
-            node.add_child(Tree(n, p, "file", depth))
-    return node
+
             
+class Catalog(object):
+    def __init__(self, root_path):
+        self.the_catalog = {}
+        self.root_path = os.path.abspath(root_path)
+        root = Tree(os.path.basename(self.root_path),
+                    self.root_path,
+                    toggle=True)
+        self.the_catalog[root.abspath] = root
+        self.create_catalog(self.root_path, root)
 
-def create_catalog():
-    global root
-    root = Tree(os.path.basename(root_dir), os.path.abspath(root_dir), toggle=True)
-    catalog(root_dir, root)
+        self.root = root
+
+    def get_content(self, ap):
+        return self.the_catalog[ap].get_series()
+        # return self.root.get_series()
+
+    def get_whole_content(self):
+        return self.get_content(self.root_path)
+
+
+    def toggle_node(self, node_path):
+        self.the_catalog[node_path].toggle()
+
+
+    def create_catalog(self, d, node, depth = 0):
+        depth += 1
+        for n in os.listdir(d):
+            if n.startswith("."):
+                continue
+            p = os.path.join(d, n)
+            if os.path.isdir(p):
+                c = Tree(n, p, "dir", depth)
+                self.the_catalog[c.abspath] = c
+                node.add_child(c)
+                self.create_catalog(p, c, depth)
+            else:
+                t = Tree(n, p, "file", depth)
+                self.the_catalog[t.abspath] = t
+                node.add_child(t)
+        return node
+
 
 
 class Content(object):
     def __init__(self, path):
         self.path = path
+
+        self.saved = True
 
         with open(self.path, "r") as rf:
             self.content = rf.read()
@@ -143,6 +152,20 @@ class Content(object):
             return (x + 1, 0)
 
 
+    def get_word_start(self, x, y):
+        line = self.content_lines[x][:y]
+        p = re.compile("[a-zA-Z_]+")
+        max = 0
+        if line:
+            for i, c in enumerate(line):
+                if p.search(c) is None:
+                    if i > max:
+                        max = i
+            return (x, max)
+        else:
+            return (x, 0)
+
+
     def get_close_char(self, x, y, start_c, end_c):
         x1, y1, x2, y2 = -1, -1, -1, -1
         for i in range(x):
@@ -172,9 +195,6 @@ class Content(object):
         return x1, y1, x2, y2
 
 
-        
-
-
 
 #def get_content():
     #content = []
@@ -186,3 +206,17 @@ class Content(object):
             #count += 1
     #return "".join(content)
 
+
+# def catalog_1(d, depth = 0):
+#     depth += 1
+#     catalog_info = "+%s\n" % os.path.basename(d)
+#     ns = os.listdir(d)
+#     for n in ns:
+#         if n.startswith("."):
+#             continue
+#         p = os.path.join(d, n)
+#         if os.path.isdir(p):
+#             catalog_info += catalog_1(p, depth)
+#         else:
+#             catalog_info += "%s-%s\n" % (depth * " ", n) 
+#     return catalog_info
