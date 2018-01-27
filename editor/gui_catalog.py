@@ -75,7 +75,7 @@ class GuiCatalog(gui.BaseEditor):
         
 
     def show(self, i, fap):
-        self.clear_syntax()
+        self.clear_syntax(i)
 
         self.t.delete("%d.0" % i, "end")
         for n, ap in self.catalog.get_content(fap):
@@ -98,9 +98,11 @@ class GuiCatalog(gui.BaseEditor):
         self.t.tag_add(ntype, index1, index2)
 
 
-    def clear_syntax(self):
+    def clear_syntax(self, cur_line):
         for ntype, index1, index2 in self.tags:
-            self.t.tag_remove(ntype, index1, index2)
+            line = int(float(index1))
+            if line >= cur_line:
+                self.t.tag_remove(ntype, index1, index2)
                 
             
 
