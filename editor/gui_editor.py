@@ -38,6 +38,8 @@ class GuiEditor(gui.BaseEditor):
         self.t.bind("<Escape>", self.handle_special("escape"))
         self.t.bind("<Control-e>", self.handle_special("c_e"))
         self.t.bind("<Control-y>", self.handle_special("c_y"))
+        self.t.bind("<Control-z>", self.handle_special("c_z"))
+        self.t.bind("<Control-r>", self.handle_special("c_r"))
 
         self.c.bind("<Return>", self.handle_special("return"))
         self.c.bind("<KeyRelease>", self.handle_special("release"))
@@ -144,6 +146,20 @@ class GuiEditor(gui.BaseEditor):
         self.set_cur_status(editor_status.InsertStatus(self, self.t))
         self.t.insert(index, text)
         self.set_cur_status(editor_status.NormalStatus(self, self.t))
+
+
+    def undo(self):
+        self.set_cur_status(editor_status.InsertStatus(self, self.t))
+        try: self.t.edit_undo()
+        except: pass
+        self.set_cur_status(editor_status.NormalStatus(self, self.t))
+
+    def redo(self):
+        self.set_cur_status(editor_status.InsertStatus(self, self.t))
+        try: self.t.edit_redo()
+        except: pass
+        self.set_cur_status(editor_status.NormalStatus(self, self.t))
+        
 
 
     def add_command_text(self, index, text):

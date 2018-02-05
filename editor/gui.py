@@ -28,7 +28,7 @@ class BaseEditor(tk.Frame):
     def __init__(self, root):
         tk.Frame.__init__(self, root)
 
-        self.t = tk.Text(self, wrap=tk.NONE)
+        self.t = tk.Text(self, wrap=tk.NONE, undo=True)
         self.create_tags()
 
     def set_cur_status(self, status):

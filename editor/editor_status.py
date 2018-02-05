@@ -224,6 +224,12 @@ class NormalStatus(EditorStatus):
         if self.editor.is_lost_vision("insert"):
             self.editor.move_visual_cursor("insert + 1 lines", "S")
 
+    def handle_u(self):
+        self.editor.undo()
+
+    def handle_c_r(self):
+        self.editor.redo()
+
     def handle_w(self):
         index = self.editor.get_insert_index().split(".")
         x, y = self.editor.content.get_next_word(int(index[0]) - 1,
@@ -261,7 +267,6 @@ class InsertStatus(EditorStatus):
 
     def handle_keypress(self, char):
         return True
-
 
 
 

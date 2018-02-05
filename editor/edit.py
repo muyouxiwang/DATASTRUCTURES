@@ -5,11 +5,6 @@ import os
 import re
 
 
-
-
-
-
-
 class Tree(object):
     def __init__(self, name, abspath, ntype = "dir", depth = 0, toggle = False):
         self.name = "+%s" % name if ntype == "dir" else "*%s" % name
@@ -42,8 +37,6 @@ class Tree(object):
                 t.extend(n)
         return t
             
-
-
 
 
             
@@ -95,15 +88,18 @@ class Content(object):
         self.path = path
 
         self.saved = True
+        self.content_lines = []
+        self.content = ""
 
         with open(self.path, "r") as rf:
-            self.content = rf.read()
-        self.content_lines = self.content.split("\n")
+            for line in rf:
+                self.content_lines.append(line)
+                self.content += line
 
     def get_content(self):
         return self.content
 
-    def search_all(self, s, p):
+    def _search_all(self, s, p):
         result = []
         cur = 0
         while s:
@@ -119,37 +115,81 @@ class Content(object):
         searched = set()
         if s:
             for i, line in enumerate(self.content_lines):
-                for j in self.search_all(line, s):
+                for j in self._search_all(line, s):
                     searched.add((i, j))
         return searched
 
 
     def get_next_word(self, x, y):
-        line = self.content_lines[x][y:]
+        line = self.content_lines[x][y+1:]
         p = re.compile("[a-zA-Z_]+")
         d = p.search(line)
         if d:
-            return (x, d.span()[1] + y)
+            return (x, d.span()[0] + y + 1)
         else:
             return (x + 1, 0)
+
+    def index_to_pos(self, index):
+        if index < 0 or index > len(self.content):
+            return (-1, -1)
+        for i, line in enumerate(self.content_lines):
+            if index <= len(line):
+                return (i, index)
+            index -= len(line)
+
+    def pos_to_index(self, x, y):
+        if x > len(self.content_lines):
+            return -1
+        if len(self.content_lines[x]) < y:
+            return -1
+        index = 0
+        for i in range(x):
+            index += len(self.content_lines[i])
+        return index + y 
+        
 
 
     def get_word_end(self, x, y):
-        line = self.content_lines[x][y:]
-        p = re.compile("[a-zA-Z_]+")
-        if line:
-            start = False
-            for i, c in enumerate(line):
-                if p.search(c) is None:
-                    if start:
-                        return (x, y + i)
-                    else:
-                        continue
-                else:
-                    start = True
-            return (x + 1, 0)
+        index = self.pos_to_index(x, y)
+        if index == -1:
+            print "nothing"
+            return
+        
+        p = re.compile("[ \t\n\r]+")
+
+        inword = True if p.search(self.content[index]) is None else False
+
+
+        
+        if inword:
+            d = p.search(self.content[index+1:])
+            dis = d.span()[0]
+            if dis == 1:
+                return self.get_word_end(x, y + 1)
+            index += d.span()[0]
+            return self.index_to_pos(index)
         else:
-            return (x + 1, 0)
+            i = index + 1
+            while p.search(self.content[i]) is not None:
+                i += 1
+
+            x1, y1 = self.index_to_pos(i)
+            return self.get_word_end(x1, y1)
+            
+        
+        # if line:
+        #     start = False
+        #     for i, c in enumerate(line):
+        #         if p.search(c) is None:
+        #             if start:
+        #                 return (x, y + i)
+        #             else:
+        #                 continue
+        #         else:
+        #             start = True
+        #     return (x + 1, 0)
+        # else:
+        #     return (x + 1, 0)
 
 
     def get_word_start(self, x, y):
@@ -220,3 +260,4 @@ class Content(object):
 #         else:
 #             catalog_info += "%s-%s\n" % (depth * " ", n) 
 #     return catalog_info
+

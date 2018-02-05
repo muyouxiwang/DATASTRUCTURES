@@ -1,4 +1,12 @@
 # -*- coding=utf-8 -*-
+123456whatthefuck
+import Tkinter as tk
+yes
+import Tkinter as tk
+import Tkinter as tk
+whatthefuck
+
+
 
 import Tkinter as tk
 import ttk
