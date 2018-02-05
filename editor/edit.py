@@ -6,8 +6,8 @@ import re
 
 
 class Tree(object):
-    def __init__(self, name, abspath, ntype = "dir", depth = 0, toggle = False):
-        self.name = "+%s" % name if ntype == "dir" else "*%s" % name
+    def __init__(self, name, abspath, ntype = "node_dir", depth = 0, toggle = False):
+        self.name = name.decode('gbk').encode('utf-8')
         self._toggle = toggle
         self.children = []
         self.ntype = ntype
@@ -16,11 +16,15 @@ class Tree(object):
         self.name = self.depth * "    " + self.name + "\n"
         self.abspath = abspath
 
+        self.sortname = "%s%s" % ("+" if self.ntype == "node_dir" else "-", self.name)
+
     def toggle(self):
         self._toggle = not self._toggle
 
     def add_child(self, c):
         self.children.append(c)
+        self.children.sort(key = lambda no: no.sortname)
+                            #reverse = True)
 
     def __str__(self):
         if self._toggle and self.ntype == 'dir':
@@ -31,8 +35,8 @@ class Tree(object):
     __repr__ = __str__
 
     def get_series(self):
-        t = [(self.name, self.abspath),]
-        if self._toggle and self.ntype == 'dir':
+        t = [self, ]
+        if self._toggle and self.ntype == 'node_dir':
             for n in [c.get_series() for c in self.children]:
                 t.extend(n)
         return t
@@ -52,12 +56,18 @@ class Catalog(object):
 
         self.root = root
 
-    def get_content(self, ap):
-        return self.the_catalog[ap].get_series()
-        # return self.root.get_series()
+    def get_content(self, node):
+        #return self.the_catalog[ap].get_series()
+        all = self.get_whole_content()
+        for i, no in enumerate(all):
+            if no.abspath == node.abspath:
+                return all[i:]
+            
 
     def get_whole_content(self):
-        return self.get_content(self.root_path)
+        #return self.get_content(self.root_path)
+        return self.the_catalog[self.root_path].get_series()
+         
 
 
     def toggle_node(self, node_path):
@@ -71,12 +81,12 @@ class Catalog(object):
                 continue
             p = os.path.join(d, n)
             if os.path.isdir(p):
-                c = Tree(n, p, "dir", depth)
+                c = Tree(n, p, "node_dir", depth)
                 self.the_catalog[c.abspath] = c
                 node.add_child(c)
                 self.create_catalog(p, c, depth)
             else:
-                t = Tree(n, p, "file", depth)
+                t = Tree(n, p, "node_file", depth)
                 self.the_catalog[t.abspath] = t
                 node.add_child(t)
         return node

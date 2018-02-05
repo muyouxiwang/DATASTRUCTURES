@@ -64,32 +64,29 @@ class GuiCatalog(gui.BaseEditor):
     def add_tag(self, name, index1, index2):
         self.tags.add()
 
-    def get_refresh(self, i, ap):
+    def get_refresh(self, i, node):
         def _(e):
-            self.catalog.toggle_node(ap)
-            self.show(i, ap)
+            node.toggle()
+            self.show(i, node)
         return _
 
     def show_catalog(self):
-        self.show(1, self.catalog.root_path)
+        self.show(1, self.catalog.root)
         
 
-    def show(self, i, fap):
+    def show(self, i, pnode):
         self.clear_syntax(i)
 
         self.t.delete("%d.0" % i, "end")
-        for n, ap in self.catalog.get_content(fap):
+        self.t.insert("end", "\n")
+        for node in self.catalog.get_content(pnode):
             start_index = "%d.0" % i
-            self.t.insert(start_index, n)
-            self.t.tag_add(ap, start_index, "%d.%d" % (i, len(n)))
-            self.t.tag_bind(ap, '<Button-1>', self.get_refresh(i, ap))
+            self.t.insert(start_index, node.name)
+            self.t.tag_add(node.abspath, start_index, "%d.%d" % (i, len(node.name)))
+            self.t.tag_bind(node.abspath, '<Button-1>', self.get_refresh(i, node))
 
-            if n.strip().startswith("+"):
-                self.syntax_node("node_dir",
-                        start_index, start_index + " lineend")
-            if n.strip().startswith("*"):
-                self.syntax_node("node_file",
-                        start_index, start_index + " lineend")
+            self.syntax_node(node.ntype,
+                    start_index, start_index + " lineend")
             i += 1
 
 
