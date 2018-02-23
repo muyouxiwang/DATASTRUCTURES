@@ -1,9 +1,60 @@
 (ns control
-  (:import (java.util.regex Pattern))
+  (:import (java.util.regex Pattern)
+           (java.util Properties)
+           (com.jcraft.jsch JSch Session))
   (:require [clojure.string :as string]
             [clojure.java.io :as io] 
             ))
 
+;; (declare *jsch* *jsch-config* *jsch-session*)
+
+(def ^:dynamic *jsch-session*)
+
+(def ^:dynamic *jsch* (new com.jcraft.jsch.JSch))
+
+(def ^:dynamic *jsch-config* (doto (new java.util.Properties)
+                     (.put "StrictHostKeyChecking" "no")))
+
+(defmacro with-session-with-port [user password host port & body]
+  "This macro creates a ssh session that is valid within it's scope."
+  `(binding [*jsch-session* (doto (.getSession *jsch* ~user ~host ~port)
+                         (.setConfig *jsch-config*)
+                         (.setPassword ~password)
+                         ;; (.setTimeout 600)
+                         (.connect))]
+     (try
+       (do ~@body)
+       (finally (.disconnect *jsch-session*)))))
+
+
+
+(defmacro with-session [user password host & body]
+  "This macro creates a ssh session that is valid within it's scope, using the
+default port 22 to connect."
+  `(with-session-with-port ~user ~password ~host 22 ~@body))
+
+(defn exec
+  "Executes a command on the remote host and returns a seq of the lines the
+  command retured."
+  [command]
+  (let
+      [channel (.openChannel *jsch-session* "exec")]
+    (doto channel
+      (.setCommand command)
+      (.setInputStream nil)
+      (.setErrStream System/err))
+    (with-open
+      [stream (.getInputStream channel)]
+      (.connect channel)
+      (print (string/join "\n" (line-seq (io/reader stream)))))))
+
+
+
+(with-session-with-port "root" "123456" "192.168.1.64" 3333
+  (exec "su - muyouxiwang")
+  (exec "ls")
+  ;; (exec "df -h")
+  )
 
 (defn issubstr [s su]
   (not (= (.indexOf s su) -1)))
@@ -100,3 +151,11 @@
 ;; (with-open [rf (io/reader "大部分运营商（幻三）  1月26日（充值送好礼）.xml")]
 ;;   (let [content (string/join "\n" (hs2ms2qq (line-seq rf) "hs2qq"))]
 ;;     (spit "result_qq.xml" content)))
+
+
+
+;; java -cp ./;clojure-1.8.0.jar;jsch-0.1.54.jar clojure.main control.clj
+
+
+
+
