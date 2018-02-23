@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+单日充值活动(活动期间可获得多份奖励) 
+说明：
+活动类型dayrecharge是对应首次充值活动的；
+开始时间starttime，value必须是时间格式；
+结束时间endtime，value必须是时间格式；
+金额类型moneytype，value默认是元宝，1=充值数；
+最小金额minmoney，value指最小金额数，0表示不限制；
+奖励类型all，value=1时表示包括前面条件的奖励，默认不包括(可以不配置)；
+特别奖励condition，value由_分隔(最小金额_次数_{道具类型:数量,} 如300_2_{120:2,204:10})，默认不限制(可以不配置)；
+节日奖励holiday，value指节日日期(格式2010-10-18)，此日期一定在活动期间，可以多个以逗号隔开，获得当天充值最高档次的奖励，默认不限制(可以不配置)；
+奖励数据reward，可以分为不同的金额对应奖励数据
+以award标记，key表示充值的最小金额数
+一个奖励里面可以有多个prop、horse、general，但类型必须不能有重复哦，而gold、money只有一个哦
+type表示道具类型，num表示数量，注意horse和general的数量默认是1。
+-->
+<data key='dayrecharge'>
+	<item key='starttime' value='2018-02-14 00:00:00'/>
+    <item key='endtime' value='2018-02-25 23:59:59'/>
+	<!--1充值数,默认元宝数-->
+    <item key='moneytype' value='0'/>
+	<!--最小金额-->
+	<item key='minmoney' value='1000'/>
+	<!--所有奖励-->
+	<item key='all' value='1'/>
+	<!--节日奖励-->
+	<item key='holiday' value='2018-02-14,2018-02-17,2018-02-18,2018-02-21,2018-02-24,2018-02-25'/>
+    <item key='reward'>
+		<award key='1000'>
+			<prop type='9' num='6' name="升级灵珠"/>
+            <prop type='203' num='6' name="炼化石"/>
+            <prop type='225' num='1' name="激活令"/>
+		</award>
+		<award key='2000'>
+			<prop type='9' num='12' name="升级灵珠"/>
+            <prop type='203' num='12' name="炼化石"/>
+            <prop type='6230' num='1' name="黄钻石30"/>
+		</award>
+		<award key='5000'>
+			<prop type='9' num='18' name="升级灵珠"/>
+            <prop type='203' num='18' name="炼化石"/>
+            <prop type='5230' num='1' name="金宝石30"/>
+        </award>
+		<award key='10000'>
+			<prop type='9' num='36' name="升级灵珠"/>
+            <prop type='203' num='36' name="炼化石"/>
+            <prop type='959' num='1' name="雷龙刀"/>
+            <prop type='6220' num='1' name="黄钻石20"/>
+            <prop type='6320' num='1' name="蓝钻石20"/>
+            <prop type='6420' num='1' name="白钻石20"/>
+            <prop type='6520' num='1' name="绿钻石20"/>
+            <prop type='6620' num='1' name="红钻石20"/>
+		</award>
+		<award key='30000'>
+			<prop type='9' num='108' name="升级灵珠"/>
+            <prop type='203' num='108' name="炼化石"/>
+            <horse type='640' name="霹雳战象"/>
+            <prop type='5225' num='1' name="金宝石25"/>
+            <prop type='5325' num='1' name="青宝石25"/>
+            <prop type='5425' num='1' name="白宝石25"/>
+            <prop type='5525' num='1' name="翠宝石25"/>
+            <prop type='5625' num='1' name="赤宝石25"/>
+		</award>
+		<award key='50000'>
+			<prop type='9' num='180' name="升级灵珠"/>
+            <prop type='203' num='180' name="炼化石"/>
+            <prop type='7525' num='1' name="地狱犬"/>
+            <prop type='6230' num='1' name="黄钻石30"/>
+            <prop type='6330' num='1' name="蓝钻石30"/>
+            <prop type='6430' num='1' name="白钻石30"/>
+            <prop type='6530' num='1' name="绿钻石30"/>
+            <prop type='6630' num='1' name="红钻石30"/>
+		</award>
+		<award key='100000'>
+			<prop type='9' num='360' name="升级灵珠"/>
+            <prop type='203' num='360' name="炼化石"/>
+            <prop type='7531' num='1' name="生命精灵"/>
+            <prop type='5240' num='1' name="金宝石40"/>
+            <prop type='5340' num='1' name="青宝石40"/>
+            <prop type='5440' num='1' name="白宝石40"/>
+            <prop type='5540' num='1' name="翠宝石40"/>
+            <prop type='5640' num='1' name="赤宝石40"/>
+		</award>
+    </item>
+</data>

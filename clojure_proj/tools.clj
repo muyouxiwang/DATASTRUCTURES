@@ -5,127 +5,135 @@
                         JTextField
                         JButton
                         JPanel
-                        JTabbedPane)
-           (java.awt GridLayout BorderLayout)
-           (java.awt.event KeyEvent)
-           #_(javax.swing.event *)
-           (java.util.regex Pattern))
-  (:require [clojure.string :as str]
-            [clojure.java.io :as io]
+                        JTabbedPane
+                        JTextArea
+                        JFileChooser
+                        JOptionPane)
+           (java.awt GridLayout
+                     BorderLayout
+                     FlowLayout
+                     GridBagLayout
+                     GridBagConstraints)
+           (java.awt.event KeyEvent
+                           ActionListener))
+  (:require [clojure.string :as string]
+            [clojure.java.io :as io] 
+            [control :refer :all]
             ))
 
 
 
-
-(defn prop_source [filename]
-  (with-open [rf (io/reader filename)]
-    (reduce conj [] (map
-                     #(str/split (str/trim %) #"###")
-                     (filter
-                      #(not (empty? (str/trim %)))
-                      (line-seq rf))))))
-(defn  make_props
-  [prop_separators propnum_separators props]
-  (let* [search_result  []
-         prop_separators
-         (str/split prop_separators #"|")
-         propnum_separators
-         (str/split propnum_separators #"|")
-         prop_seq (first (filter
-                          #(> (.indexOf props %) -1)
-                          prop_separators))
-         prop_lst (if (nil? prop_seq)
-                    [props]
-                    (str/split
-                     props
-                     (Pattern/compile
-                      prop_seq)))]
-    (defn one-item-results [search_name num]
-      (filter #(not (nil? %))
-              (map #(let [[pname prop_str] %]
-                      (if (not (= (.indexOf pname search_name) -1))
-                        (if (not (= (.indexOf prop_str "%d") -1))
-                          (format prop_str num)
-                          prop_str)))
-                   (prop_source "./sourcefile.xml"))))
-
-    (defn search-result [item]
-      (reduce into []
-              (map #(if (not (= (.indexOf item %) -1))
-                      (let [[search_name num]
-                            (str/split item
-                                       (Pattern/compile %))]
-                        (one-item-results
-                         search_name (Integer/parseInt num))))
-                   propnum_separators)))
-
-    (reduce into [] 
-            (map #(if (= (count %) 0) "????----" %)
-                 (map search-result prop_lst)))))
-;; for item in prop_lst:
-;;     exist = False
-;;     for propnum_sep in propnum_separators:
-;;         if propnum_sep in item:
-;;             exist = True
-;;             search_name, num = item.split(propnum_sep)
-;;             search_name = search_name.strip()
-;;             num = int(num.strip())
-;;     if not exist:
-;;         search_result.append("?" * 30)
-;;         continue
-;;     exist = False
-;;     for pname, prop_str in prop_source:
-;;         if search_name in pname:
-;;             exist = True
-;;             if prop_str.find('%d') != -1:
-;;                 search_result.append(prop_str % num)
-;;             else:
-;;                 search_result.append(prop_str)
-;;     if not exist:
-;;         search_result.append("?" * 30)
-
-;; return search_result
+(defn Button-check [text1 text2 text3 text4]
+  (proxy [JButton ActionListener][]
+    (actionPerformed [e]
+      (.setText text4 (string/join "\n" (make_props
+                                      (.getText text1)
+                                      (.getText text2)
+                                      (.getText text3)))))))
 
 
+(defn get-panel1 []
+  (let* [panel (JPanel.)
+         label1 (JLabel. "道具分隔符")
+         label2 (JLabel. "数量分隔符")
+         text1 (JTextField. "，|、|,")
+         text2 (JTextField. "*|×|x")
+         text3 (JTextField. "宝石25×15，紅鑽石30×2，藍鑽石30×8，黃鑽石30×6，未知30×4，未知30+6")
+         text4 (JTextArea.)
+         button (Button-check text1 text2 text3 text4) 
+         c (GridBagConstraints.)]
+    (doto button
+      (.setText "查询")
+      (.addActionListener button))
+    (doto panel
+      (.setLayout (GridLayout. 7 1))
+      (.add label1)
+      (.add text1)
+      (.add label2)
+      (.add text2)
+      (.add text3)
+      (.add button)
+      (.add text4))
+    panel))
 
+(defn Button-choose-file [label]
+  (proxy [JButton ActionListener][]
+    (actionPerformed [e]
+      (let* [fc (JFileChooser.)
+            ret (.showDialog fc nil "请选择文件")]
+        (if (= ret JFileChooser/APPROVE_OPTION)
+          (.setText label (.getAbsolutePath
+                           (.getSelectedFile fc))))))))
 
+(defn Button-save [label text trans_type]
+  (proxy [JButton ActionListener][]
+    (actionPerformed [e]
+      (if (and (or (not (empty? (.getText label)))
+                   (JOptionPane/showMessageDialog nil "请先选择文件！"))
+               (or (not (empty? (.getText text))) 
+                   (JOptionPane/showMessageDialog nil "文件名不能为空！")))
+        (let* [fc (doto (JFileChooser.)
+                    (.setDialogType JFileChooser/SAVE_DIALOG)
+                    (.setFileSelectionMode JFileChooser/DIRECTORIES_ONLY))
+               ret (.showDialog fc nil "保存文件")]
+          (if (= ret JFileChooser/APPROVE_OPTION) 
+            (let [save-file-path (.getPath (io/file (.getAbsolutePath (.getSelectedFile fc))
+                                                    (.getText text)))]
+              (with-open [rf (io/reader (.getText label))]
+                (let [content (string/join "\n" (hs2ms2qq (line-seq rf) trans_type))]
+                  (spit save-file-path content))))))))))
 
-
-(defn main []
-
-  ;; (print (prop_source "./sourcefile.xml"))
-  (print (make_props "，|、|," "*|×|x"
-    "宝石25×15，紅鑽石30×2，藍鑽石30×8，黃鑽石30×6，未知30×4，未知30+6"
-                       ))
-  )
-
-
-
-
-
+(defn get-panel2 []
+  (let* [panel (JPanel.)
+         label1 (JTextField.)
+         button (Button-choose-file label1)
+         text-ms (JTextField.)
+         button-ms (Button-save label1 text-ms "hs2ms")
+         text-qq (JTextField.)
+         button-qq (Button-save label1 text-qq "hs2qq")]
+    (doto button
+      (.setText "选择文件")
+      (.addActionListener button))
+    (doto button-ms
+      (.setText "转梦三")
+      (.addActionListener button-ms))
+    (doto button-qq
+      (.setText "转魔三")
+      (.addActionListener button-qq))
+    (doto panel
+      (.setLayout (GridLayout. 6 1))
+      (.add label1)
+      (.add button)
+      (.add text-ms)
+      (.add button-ms)
+      (.add text-qq)
+      (.add button-qq))
+    #_(doto fc
+        (.showDialog nil "请选择文件"))
+    panel))
 
 
 (defn gui []
   (let [frame (JFrame. "tools")
         tabs (JTabbedPane. JTabbedPane/TOP)
-        panel1 (JPanel.)
-        panel2 (JPanel.)]
+        panel1 (get-panel1)
+        panel2 (get-panel2)]
     (doto tabs
       (.add panel1 "道具查询")
       ;; (.setMnemonicAt 0 KeyEvent/VK_0)
-      (.add panel2 "second")
+      (.add panel2 "配置转换")
       ;; (.setMnemonicAt 1 KeyEvent/VK_1)
       )
     (doto frame
       (.setDefaultCloseOperation
        (JFrame/EXIT_ON_CLOSE))
-      (.setSize 300 200)
+      (.setSize 600 400)
       (.setLayout (BorderLayout.))
       (.add tabs BorderLayout/CENTER)
       (.setVisible true))))
 
-
 (gui)
-;; (main)
 
-;; java -cp clojure-1.8.0.jar clojure.main tools.clj
+;; java -cp ./;clojure-1.8.0.jar clojure.main tools.clj
+;; java -classpath ./;clojure-1.8.0.jar clojure.main tools.clj
+
