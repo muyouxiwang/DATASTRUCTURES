@@ -19,7 +19,7 @@
                           (doto -session
                             (.setConfig jsch-config)
                             (.setPassword password)
-                            (.setTimeout 600))
+                            #_(.setTimeout 600))
                           (if proxy
                             (.setProxy -session proxy))
                           -session)
@@ -29,15 +29,16 @@
           buff (StringBuilder.)]
      (try
        (with-open
-         [in (io/reader (.getInputStream channel))
-          out (io/writer (.getOutputStream channel))]
+         [in (.getInputStream channel)#_(io/reader )
+          out (.getOutputStream channel)#_(io/writer )]
          
          (defn shell-println [cmd]
-           (.write out (str (string/trim cmd) "\n"))
+           (.write out (.getBytes (str (string/trim cmd) "\n")))
            (.flush out))
 
          (defn shell-read-all []
-           (while (or (.ready in) (Thread/sleep 1000) (.ready in))
+           ;; (while (or (.ready in) (Thread/sleep 1000) (.ready in))
+           (while (or (> (.available in) 0) (Thread/sleep 1000) (> (.available in) 0))
              (.append buff (char (.read in)))))
          
          (shell-read-all)
@@ -46,7 +47,9 @@
            (shell-read-all))
 
          (.toString buff))
-       (finally (.disconnect session))))))
+       (catch Exception e (str "get server info error:" e))
+       (finally (.disconnect channel)
+                (.disconnect session))))))
 
 #_(print (ssh-exec-cmds
         "192.168.1.64" 3333 "muyouxiwang" "123456" 
@@ -54,10 +57,17 @@
          "ls"
          "df -h"]))
 
+#_(print (ssh-exec-cmds
+        "192.168.0.109" 3333 "muyouxiwang" "123456" 
+        ["ps aux"
+         "ls"
+         "df -h"]))
+
 ;; (print (ssh-exec-cmds
 ;;         "sgtest.198game.com" 63572 "youease" "3841c3847a98da37da83a212a8d4c14e" 
 ;;         ["sudo su - sislcb"
-;;          "ls"] "125.90.93.53" 36000))
+;;          "cat /home/sislcb/client/ini/config.xml | grep server | grep -v id"
+;;          "cat /home/sislcb/gm_server/conf/keyconf.ini"] "125.90.93.53" 36000))
 
 (defn issubstr [s su]
   (not (= (.indexOf s su) -1)))
@@ -138,23 +148,19 @@
   (str "i am " host "=====\n"))
 
 (defn get-one-server-info [host]
-  (test-ssh-exec-cmds host 63572 "youease" "3841c3847a98da37da83a212a8d4c14e"
+  (ssh-exec-cmds host 63572 "youease" "3841c3847a98da37da83a212a8d4c14e"
                       ["sudo su - sislcb"
                        "cat /home/sislcb/client/ini/config.xml | grep server | grep -v id"
                        "cat /home/sislcb/gm_server/conf/keyconf.ini"]
                       "125.90.93.53" 36000))
 
 
-(defn get-gm-new-servers [gametype startid endid]
-  (let [results (atom {})]))
+
 
 (defn get-gm-new-servers [gametype startid endid]
   (let [get-pro (fn [sid]
-                  (let [ret (promise)]
-                    (future (deliver
-                             ret (get-one-server-info
-                                  (format "%s%d.198game.com" gametype sid))))
-                    ret))]
+                  (future (get-one-server-info
+                           (format "%s%d.198game.com" gametype sid))))]
     (string/join "\n"
                  (map #(deref %)
                       (map #(get-pro %) (range startid (+ endid 1)))))))
