@@ -11,11 +11,12 @@
    (ssh-exec-cmds host port user password commands nil nil))
 
   ([host port user password commands proxyhost proxyport]
-   (let* [jsch-config (doto (Properties.)
+   (let* [jsch (JSch.)
+          jsch-config (doto (Properties.)
                         (.put "StrictHostKeyChecking" "no"))
           proxy (if (and proxyhost proxyport)
                   (ProxyHTTP. proxyhost proxyport))
-          session (doto (let [-session (.getSession (JSch.) user host port)]
+          session (doto (let [-session (.getSession jsch user host port)]
                           (doto -session
                             (.setConfig jsch-config)
                             (.setPassword password)
@@ -57,17 +58,30 @@
          "ls"
          "df -h"]))
 
-#_(print (ssh-exec-cmds
-        "192.168.0.109" 3333 "muyouxiwang" "123456" 
-        ["ps aux"
-         "ls"
-         "df -h"]))
+#_(let [ret (atom [])
+      o1 (Thread. #(swap! ret conj (str "11111111111" (ssh-exec-cmds
+                                                       "192.168.0.109" 3333 "muyouxiwang" "123456" 
+                                                       [
+                                                        "echo FUCK1"
+                                                        "echo FUCK1"]) "111111111111")))
+      o2 (Thread. #(swap! ret conj (str "2222222222222" (ssh-exec-cmds
+                                                         "sgtest.198game.com" 63572 "youease" "3841c3847a98da37da83a212a8d4c14e" 
+                                                         ["sudo su - sislcb"
+                                                          "cat /home/sislcb/client/ini/config.xml | grep server | grep -v id"
+                                                          "cat /home/sislcb/gm_server/conf/keyconf.ini"] "125.90.93.53" 36000) "22222222222222222")))
+      ]
+  (.start o1)
+  (.start o2)
+  (.join o1)
+  (.join o2)
+  (print @ret)
+  )
 
-;; (print (ssh-exec-cmds
-;;         "sgtest.198game.com" 63572 "youease" "3841c3847a98da37da83a212a8d4c14e" 
-;;         ["sudo su - sislcb"
-;;          "cat /home/sislcb/client/ini/config.xml | grep server | grep -v id"
-;;          "cat /home/sislcb/gm_server/conf/keyconf.ini"] "125.90.93.53" 36000))
+#_(print (ssh-exec-cmds
+        "sgtest.198game.com" 63572 "youease" "3841c3847a98da37da83a212a8d4c14e" 
+        ["sudo su - sislcb"
+         "cat /home/sislcb/client/ini/config.xml | grep server | grep -v id"
+         "cat /home/sislcb/gm_server/conf/keyconf.ini"] "125.90.93.53" 36000))
 
 (defn issubstr [s su]
   (not (= (.indexOf s su) -1)))
@@ -143,12 +157,20 @@
                 (map #(if (= (count %) 0) "????----" %)
                      (map search-result prop_lst)))))))
 
-(defn test-ssh-exec-cmds [host port user password commands proxyhost proxyport]
+#_(defn test-ssh-exec-cmds [host port user password commands proxyhost proxyport]
   (Thread/sleep (* (rand-int 5) 1000))
   (str "i am " host "=====\n"))
 
+(defn test-ssh-exec-cmds [host port user password commands proxyhost proxyport]
+  (ssh-exec-cmds
+        "192.168.0.109" 3333 "muyouxiwang" "123456" 
+        [
+         ;; "ps aux"
+         "ls"
+         "df -h"]))
+
 (defn get-one-server-info [host]
-  (ssh-exec-cmds host 63572 "youease" "3841c3847a98da37da83a212a8d4c14e"
+  (test-ssh-exec-cmds host 63572 "youease" "3841c3847a98da37da83a212a8d4c14e"
                       ["sudo su - sislcb"
                        "cat /home/sislcb/client/ini/config.xml | grep server | grep -v id"
                        "cat /home/sislcb/gm_server/conf/keyconf.ini"]
@@ -161,7 +183,7 @@
   (let [get-pro (fn [sid]
                   (future (get-one-server-info
                            (format "%s%d.198game.com" gametype sid))))]
-    (string/join "\n"
+    (string/join "******************************************\n"
                  (map #(deref %)
                       (map #(get-pro %) (range startid (+ endid 1)))))))
 
