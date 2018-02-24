@@ -134,6 +134,6 @@
 
 (gui)
 
-;; java -cp ./;clojure-1.8.0.jar clojure.main tools.clj
-;; java -classpath ./;clojure-1.8.0.jar clojure.main tools.clj
+;; java -cp ./;clojure-1.8.0.jar;jsch-0.1.54.jar clojure.main tools.clj
+;; java -classpath ./;clojure-1.8.0.jar;jsch-0.1.54.jar clojure.main tools.clj
 

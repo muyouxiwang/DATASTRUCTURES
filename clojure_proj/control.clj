@@ -1,60 +1,63 @@
 (ns control
   (:import (java.util.regex Pattern)
            (java.util Properties)
-           (com.jcraft.jsch JSch Session))
+           (com.jcraft.jsch JSch Session ProxyHTTP))
   (:require [clojure.string :as string]
             [clojure.java.io :as io] 
             ))
 
-;; (declare *jsch* *jsch-config* *jsch-session*)
+(defn ssh-exec-cmds
+  ([host port user password commands]
+   (ssh-exec-cmds host port user password commands nil nil))
 
-(def ^:dynamic *jsch-session*)
-
-(def ^:dynamic *jsch* (new com.jcraft.jsch.JSch))
-
-(def ^:dynamic *jsch-config* (doto (new java.util.Properties)
-                     (.put "StrictHostKeyChecking" "no")))
-
-(defmacro with-session-with-port [user password host port & body]
-  "This macro creates a ssh session that is valid within it's scope."
-  `(binding [*jsch-session* (doto (.getSession *jsch* ~user ~host ~port)
-                         (.setConfig *jsch-config*)
-                         (.setPassword ~password)
-                         ;; (.setTimeout 600)
-                         (.connect))]
+  ([host port user password commands proxyhost proxyport]
+   (let* [jsch-config (doto (Properties.)
+                        (.put "StrictHostKeyChecking" "no"))
+          proxy (if (and proxyhost proxyport)
+                  (ProxyHTTP. proxyhost proxyport))
+          session (doto (let [-session (.getSession (JSch.) user host port)]
+                          (doto -session
+                            (.setConfig jsch-config)
+                            (.setPassword password)
+                            (.setTimeout 600))
+                          (if proxy
+                            (.setProxy -session proxy))
+                          -session)
+                    (.connect))
+          channel (doto (.openChannel session "shell")
+                    (.connect))
+          buff (StringBuilder.)]
      (try
-       (do ~@body)
-       (finally (.disconnect *jsch-session*)))))
+       (with-open
+         [in (io/reader (.getInputStream channel))
+          out (io/writer (.getOutputStream channel))]
+         
+         (defn shell-println [cmd]
+           (.write out (str (string/trim cmd) "\n"))
+           (.flush out))
 
+         (defn shell-read-all []
+           (while (or (.ready in) (Thread/sleep 1000) (.ready in))
+             (.append buff (char (.read in)))))
+         
+         (shell-read-all)
+         (doseq [cmd commands]
+           (shell-println cmd)
+           (shell-read-all))
 
+         (.toString buff))
+       (finally (.disconnect session))))))
 
-(defmacro with-session [user password host & body]
-  "This macro creates a ssh session that is valid within it's scope, using the
-default port 22 to connect."
-  `(with-session-with-port ~user ~password ~host 22 ~@body))
+#_(print (ssh-exec-cmds
+        "192.168.1.64" 3333 "muyouxiwang" "123456" 
+        ["ps aux"
+         "ls"
+         "df -h"]))
 
-(defn exec
-  "Executes a command on the remote host and returns a seq of the lines the
-  command retured."
-  [command]
-  (let
-      [channel (.openChannel *jsch-session* "exec")]
-    (doto channel
-      (.setCommand command)
-      (.setInputStream nil)
-      (.setErrStream System/err))
-    (with-open
-      [stream (.getInputStream channel)]
-      (.connect channel)
-      (print (string/join "\n" (line-seq (io/reader stream)))))))
-
-
-
-(with-session-with-port "root" "123456" "192.168.1.64" 3333
-  (exec "su - muyouxiwang")
-  (exec "ls")
-  ;; (exec "df -h")
-  )
+;; (print (ssh-exec-cmds
+;;         "sgtest.198game.com" 63572 "youease" "3841c3847a98da37da83a212a8d4c14e" 
+;;         ["sudo su - sislcb"
+;;          "ls"] "125.90.93.53" 36000))
 
 (defn issubstr [s su]
   (not (= (.indexOf s su) -1)))
@@ -124,7 +127,7 @@ default port 22 to connect."
               (map #(if (not (= (.indexOf item %) -1))
                       (let [[search_name num]
                             (string/split item
-                                       (Pattern/compile %))]
+                                          (Pattern/compile %))]
                         (one-item-results
                          search_name (Integer/parseInt num))))
                    propnum_separators)))
@@ -134,13 +137,24 @@ default port 22 to connect."
                  (map search-result prop_lst)))))
 
 
+(defn count-sub [s sub]
+  (let [index (.indexOf s sub)]
+    (if (= index -1)
+      0
+      (+ (count-sub (.substring s (+ index 1)) sub) 1))))
+
+;; (print (count-sub "abcdefgabclsfd" "abc"))
+;; (print (count-sub "sllabcabcdefgabclsfd" "abc"))
+;; (print (count-sub "aaaaa" "aa"))
+;; (print (count-sub "sldfl" "aa"))
+
 
 
 (defn main []
 
   ;; (print (prop_source "./sourcefile.xml"))
   (print (make_props "，|、|," "*|×|x"
-    "宝石25×15，紅鑽石30×2，藍鑽石30×8，黃鑽石30×6，未知30×4，未知30+6")))
+                     "宝石25×15，紅鑽石30×2，藍鑽石30×8，黃鑽石30×6，未知30×4，未知30+6")))
 
 ;; (print (issubstr "abcdefg" "def"))
 ;; (print (issubstr "abcdefg" "uil"))
