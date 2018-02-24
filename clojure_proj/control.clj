@@ -88,53 +88,76 @@
               :else %) h3xml))))
 
 
+(def make_props
+  (let [prop_source
+        (with-open [rf (io/reader "./sourcefile.xml")]
+          (reduce conj [] (map
+                           #(string/split (string/trim %) #"###")
+                           (filter
+                            #(not (empty? (string/trim %)))
+                            (line-seq rf)))))]
+    (fn [prop_separators propnum_separators props]
+      (let* [prop_separators
+             (string/split prop_separators #"|")
+             propnum_separators
+             (string/split propnum_separators #"|")
+             prop_seq (first (filter
+                              #(> (.indexOf props %) -1)
+                              prop_separators))
+             prop_lst (if (nil? prop_seq)
+                        [props]
+                        (string/split
+                         props
+                         (Pattern/compile
+                          prop_seq)))]
+        (defn one-item-results [search_name num]
+          (filter #(not (nil? %))
+                  (map #(let [[pname prop_str] %]
+                          (if (not (= (.indexOf pname search_name) -1))
+                            (if (not (= (.indexOf prop_str "%d") -1))
+                              (format prop_str num)
+                              prop_str)))
+                       prop_source)))
 
-(defn prop_source [filename]
-  (with-open [rf (io/reader filename)]
-    (reduce conj [] (map
-                     #(string/split (string/trim %) #"###")
-                     (filter
-                      #(not (empty? (string/trim %)))
-                      (line-seq rf))))))
+        (defn search-result [item]
+          (reduce into []
+                  (map #(if (not (= (.indexOf item %) -1))
+                          (let [[search_name num]
+                                (string/split item
+                                              (Pattern/compile %))]
+                            (one-item-results
+                             search_name (Integer/parseInt num))))
+                       propnum_separators)))
 
-(defn  make_props
-  [prop_separators propnum_separators props]
-  (let* [search_result  []
-         prop_separators
-         (string/split prop_separators #"|")
-         propnum_separators
-         (string/split propnum_separators #"|")
-         prop_seq (first (filter
-                          #(> (.indexOf props %) -1)
-                          prop_separators))
-         prop_lst (if (nil? prop_seq)
-                    [props]
-                    (string/split
-                     props
-                     (Pattern/compile
-                      prop_seq)))]
-    (defn one-item-results [search_name num]
-      (filter #(not (nil? %))
-              (map #(let [[pname prop_str] %]
-                      (if (not (= (.indexOf pname search_name) -1))
-                        (if (not (= (.indexOf prop_str "%d") -1))
-                          (format prop_str num)
-                          prop_str)))
-                   (prop_source "./sourcefile.xml"))))
+        (reduce into [] 
+                (map #(if (= (count %) 0) "????----" %)
+                     (map search-result prop_lst)))))))
 
-    (defn search-result [item]
-      (reduce into []
-              (map #(if (not (= (.indexOf item %) -1))
-                      (let [[search_name num]
-                            (string/split item
-                                          (Pattern/compile %))]
-                        (one-item-results
-                         search_name (Integer/parseInt num))))
-                   propnum_separators)))
+(defn test-ssh-exec-cmds [host port user password commands proxyhost proxyport]
+  (Thread/sleep (* (rand-int 5) 1000))
+  (str "i am " host "=====\n"))
 
-    (reduce into [] 
-            (map #(if (= (count %) 0) "????----" %)
-                 (map search-result prop_lst)))))
+(defn get-one-server-info [host]
+  (test-ssh-exec-cmds host 63572 "youease" "3841c3847a98da37da83a212a8d4c14e"
+                      ["sudo su - sislcb"
+                       "cat /home/sislcb/client/ini/config.xml | grep server | grep -v id"
+                       "cat /home/sislcb/gm_server/conf/keyconf.ini"]
+                      "125.90.93.53" 36000))
+
+
+(defn get-gm-new-servers [gametype startid endid]
+  (let [results (atom {})]))
+
+(defn get-gm-new-servers [gametype startid endid]
+  (let [get-pro (fn [sid]
+                  (let [ret (promise)]
+                    (future (deliver
+                             ret (get-one-server-info
+                                  (format "%s%d.198game.com" gametype sid))))
+                    ret))]
+    (string/join "\n"
+                 (map #(deref %)
+                      (map #(get-pro %) (range startid (+ endid 1)))))))
 
 
 (defn count-sub [s sub]
@@ -171,5 +194,9 @@
 ;; java -cp ./;clojure-1.8.0.jar;jsch-0.1.54.jar clojure.main control.clj
 
 
-
+;; (let [ret (atom [])]
+;;   (future (swap! ret conj (get-one-server-info
+;;                            "s8.youease.net")))
+  
+;;   (print @ret))
 

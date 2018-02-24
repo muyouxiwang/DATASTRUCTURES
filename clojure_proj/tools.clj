@@ -7,6 +7,7 @@
                         JPanel
                         JTabbedPane
                         JTextArea
+                        JComboBox
                         JFileChooser
                         JOptionPane)
            (java.awt GridLayout
@@ -85,7 +86,7 @@
 
 (defn get-panel2 []
   (let* [panel (JPanel.)
-         label1 (JTextField.)
+         label1 (JLabel.)
          button (Button-choose-file label1)
          text-ms (JTextField.)
          button-ms (Button-save label1 text-ms "hs2ms")
@@ -112,17 +113,59 @@
         (.showDialog nil "请选择文件"))
     panel))
 
+(defn Button-gm-new-servers [gametype startid endid]
+  (proxy [JButton ActionListener][]
+    (actionPerformed [e]
+      (let* [gametype ({0 "s" 1 "m"} (.getSelectedIndex gametype))
+             startid (Integer/parseInt (.getText startid))
+             endid (Integer/parseInt (.getText endid))
+             content (get-gm-new-servers gametype startid endid)
+             fc (doto (JFileChooser.)
+                  (.setDialogType JFileChooser/SAVE_DIALOG)
+                  (.setFileSelectionMode JFileChooser/DIRECTORIES_ONLY))
+             ret (.showDialog fc nil "保存文件")]
+        (if (= ret JFileChooser/APPROVE_OPTION) 
+          (let [save-file-path (.getPath (io/file
+                                          (.getAbsolutePath (.getSelectedFile fc))
+                                          (format "%s%d-%d.txt" gametype startid endid)))]
+            (spit save-file-path content)))))))
+
+(defn get-panel3 []
+  (let* [panel (JPanel.)
+         label1 (JLabel. "游戏类型")
+         combobox (JComboBox.)
+         label2 (JLabel. "开始id")
+         text1 (JTextField. "15")
+         label3 (JLabel. "结束id")
+         text2 (JTextField. "20")
+         button (Button-gm-new-servers combobox text1 text2)]
+    (doto combobox
+      (.addItem "幻三")
+      (.addItem "梦三"))
+    (doto button
+      (.setText "获取")
+      (.addActionListener button))
+    (doto panel
+      (.setLayout (GridLayout. 7 1))
+      (.add label1)
+      (.add combobox)
+      (.add label2)
+      (.add text1)
+      (.add label3)
+      (.add text2)
+      (.add button))
+    panel))
 
 (defn gui []
   (let [frame (JFrame. "tools")
         tabs (JTabbedPane. JTabbedPane/TOP)
         panel1 (get-panel1)
-        panel2 (get-panel2)]
+        panel2 (get-panel2)
+        panel3 (get-panel3)]
     (doto tabs
       (.add panel1 "道具查询")
-      ;; (.setMnemonicAt 0 KeyEvent/VK_0)
       (.add panel2 "配置转换")
-      ;; (.setMnemonicAt 1 KeyEvent/VK_1)
+      (.add panel3 "gm新服")
       )
     (doto frame
       (.setDefaultCloseOperation
