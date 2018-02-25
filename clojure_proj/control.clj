@@ -62,13 +62,13 @@
       o1 (Thread. #(swap! ret conj (str "11111111111" (ssh-exec-cmds
                                                        "192.168.0.109" 3333 "muyouxiwang" "123456" 
                                                        [
-                                                        "echo FUCK1"
-                                                        "echo FUCK1"]) "111111111111")))
+                                                        "who am i"
+                                                        "who am i"]) "111111111111")))
       o2 (Thread. #(swap! ret conj (str "2222222222222" (ssh-exec-cmds
-                                                         "sgtest.198game.com" 63572 "youease" "3841c3847a98da37da83a212a8d4c14e" 
-                                                         ["sudo su - sislcb"
-                                                          "cat /home/sislcb/client/ini/config.xml | grep server | grep -v id"
-                                                          "cat /home/sislcb/gm_server/conf/keyconf.ini"] "125.90.93.53" 36000) "22222222222222222")))
+                                                       "192.168.0.109" 3333 "root" "123456" 
+                                                       [
+                                                        "who am i"
+                                                        "who am i"]) "22222222222222222")))
       ]
   (.start o1)
   (.start o2)
