@@ -135,9 +135,9 @@
          label1 (JLabel. "游戏类型")
          combobox (JComboBox.)
          label2 (JLabel. "开始id")
-         text1 (JTextField. "943")
+         text1 (JTextField. "")
          label3 (JLabel. "结束id")
-         text2 (JTextField. "945")
+         text2 (JTextField. "")
          button (Button-gm-new-servers combobox text1 text2)]
     (doto combobox
       (.addItem "幻三")
