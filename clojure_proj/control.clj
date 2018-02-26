@@ -160,16 +160,19 @@
 
 
 (defn get-gm-new-servers [gametype startid endid]
-  (let [get-pro (fn [sid]
-                  (future (ssh-exec-cmds (format "%s%d.198game.com" gametype sid)
-                                         63572 "youease" "3841c3847a98da37da83a212a8d4c14e"
-                                         ["sudo su - sislcb"
-                                          "cat /home/sislcb/client/ini/config.xml | grep server | grep -v id"
-                                          "cat /home/sislcb/gm_server/conf/keyconf.ini"]
-                                         "125.90.93.53" 36000)))]
-    (string/join "\n******************************************\n"
-                 (map #(deref %)
-                      (map #(get-pro %) (range startid (+ endid 1)))))))
+  (if (and (> startid 0)
+           (> endid 0)
+           (>= endid startid))
+    (let [get-pro (fn [sid]
+                    (future (ssh-exec-cmds (format "%s%d.198game.com" gametype sid)
+                                           63572 "youease" "3841c3847a98da37da83a212a8d4c14e"
+                                           ["sudo su - sislcb"
+                                            "cat /home/sislcb/client/ini/config.xml | grep server | grep -v id"
+                                            "cat /home/sislcb/gm_server/conf/keyconf.ini"]
+                                           "125.90.93.53" 36000)))]
+      (string/join "\n******************************************\n"
+                   (map #(deref %)
+                        (map #(get-pro %) (range startid (+ endid 1))))))))
 
 
 (defn count-sub [s sub]

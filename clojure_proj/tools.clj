@@ -9,6 +9,7 @@
                         JTextArea
                         JComboBox
                         JFileChooser
+                        JScrollPane
                         JOptionPane)
            (java.awt GridLayout
                      BorderLayout
@@ -34,7 +35,8 @@
 
 
 (defn get-panel1 []
-  (let* [panel (JPanel.)
+  (let* [panelback (JPanel.)
+         panel (JPanel.)
          label1 (JLabel. "道具分隔符")
          label2 (JLabel. "数量分隔符")
          text1 (JTextField. "，|、|,")
@@ -42,20 +44,23 @@
          text3 (JTextField. "宝石25×15，紅鑽石30×2，藍鑽石30×8，黃鑽石30×6，未知30×4，未知30+6")
          text4 (JTextArea.)
          button (Button-check text1 text2 text3 text4) 
-         c (GridBagConstraints.)]
+         scrolltext (JScrollPane. text4 )]
     (doto button
       (.setText "查询")
       (.addActionListener button))
     (doto panel
-      (.setLayout (GridLayout. 7 1))
+      (.setLayout (GridLayout. 0 1))
       (.add label1)
       (.add text1)
       (.add label2)
       (.add text2)
       (.add text3)
-      (.add button)
-      (.add text4))
-    panel))
+      (.add button))
+    (doto panelback
+      (.setLayout (BorderLayout.))
+      (.add panel BorderLayout/NORTH)
+      (.add scrolltext BorderLayout/CENTER))
+    panelback))
 
 (defn Button-choose-file [label]
   (proxy [JButton ActionListener][]
@@ -102,7 +107,7 @@
       (.setText "转魔三")
       (.addActionListener button-qq))
     (doto panel
-      (.setLayout (GridLayout. 6 1))
+      (.setLayout (GridLayout. 0 1))
       (.add label1)
       (.add button)
       (.add text-ms)
@@ -117,18 +122,26 @@
   (proxy [JButton ActionListener][]
     (actionPerformed [e]
       (let* [gametype ({0 "s" 1 "m"} (.getSelectedIndex gametype))
-             startid (Integer/parseInt (.getText startid))
-             endid (Integer/parseInt (.getText endid))
-             content (get-gm-new-servers gametype startid endid)
-             fc (doto (JFileChooser.)
-                  (.setDialogType JFileChooser/SAVE_DIALOG)
-                  (.setFileSelectionMode JFileChooser/DIRECTORIES_ONLY))
-             ret (.showDialog fc nil "保存文件")]
-        (if (= ret JFileChooser/APPROVE_OPTION) 
-          (let [save-file-path (.getPath (io/file
-                                          (.getAbsolutePath (.getSelectedFile fc))
-                                          (format "%s%d-%d.txt" gametype startid endid)))]
-            (spit save-file-path content)))))))
+             startid (try (Integer/parseInt (.getText startid))
+                          (catch Exception e -1))
+             endid (try (Integer/parseInt (.getText endid))
+                        (catch Exception e -1))]
+        (if (and (> startid 0)
+                 (> endid 0)
+                 (>= endid startid))
+          (let [content (get-gm-new-servers gametype startid endid)
+                fc (doto (JFileChooser.)
+                     (.setDialogType JFileChooser/SAVE_DIALOG)
+                     (.setFileSelectionMode JFileChooser/DIRECTORIES_ONLY))
+                ret (.showDialog fc nil "保存文件")]
+            (if (= ret JFileChooser/APPROVE_OPTION) 
+              (let [save-file-path (.getPath (io/file
+                                              (.getAbsolutePath (.getSelectedFile fc))
+                                              (format "%s%d-%d.txt" gametype startid endid)))]
+                (if content
+                  (spit save-file-path content)
+                  (JOptionPane/showMessageDialog nil "获取失败！")))))
+          (JOptionPane/showMessageDialog nil "请输入正确的id！"))))))
 
 (defn get-panel3 []
   (let* [panel (JPanel.)
@@ -146,7 +159,7 @@
       (.setText "获取")
       (.addActionListener button))
     (doto panel
-      (.setLayout (GridLayout. 7 1))
+      (.setLayout (GridLayout. 0 1))
       (.add label1)
       (.add combobox)
       (.add label2)
@@ -165,12 +178,12 @@
     (doto tabs
       (.add panel1 "道具查询")
       (.add panel2 "配置转换")
-      (.add panel3 "gm新服")
-      )
+      (.add panel3 "gm新服"))
     (doto frame
       (.setDefaultCloseOperation
        (JFrame/EXIT_ON_CLOSE))
       (.setSize 600 400)
+      (.setLocationRelativeTo nil)
       (.setLayout (BorderLayout.))
       (.add tabs BorderLayout/CENTER)
       (.setVisible true))))
