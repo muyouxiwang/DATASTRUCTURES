@@ -1,7 +1,8 @@
 (ns control
   (:import (java.util.regex Pattern)
            (java.util Properties)
-           (com.jcraft.jsch JSch Session ProxyHTTP))
+           (com.jcraft.jsch JSch Session ProxyHTTP)
+           (java.net URL URLConnection))
   (:require [clojure.string :as string]
             [clojure.java.io :as io] 
             ))
@@ -48,7 +49,7 @@
              (shell-println cmd)
              (shell-read-all)))
          (.toString buff))
-       (catch Exception e (str "get server info error:" e))
+       (catch Exception e (str "[get server info error] " e))
        (finally (.disconnect channel)
                 (.disconnect session))))))
 
@@ -199,7 +200,26 @@
 ;;   (let [content (string/join "\n" (hs2ms2qq (line-seq rf) "hs2qq"))]
 ;;     (spit "result_qq.xml" content)))
 
+(defn http-get [url]
+  (try
+    (let* [con (doto (.openConnection (URL. url))
+                 (.setRequestProperty "accept" "*/*")
+                 (.setRequestProperty "connection" "Keep-Alive")
+                 (.setRequestProperty
+                  "user-agent"
+                  "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)")
+                 (.connect))
+           ret (StringBuilder.)]
+      (with-open [in (io/reader (.getInputStream con))]
+        (while (or (.ready in) (Thread/sleep 1000) (.ready in))
+          (.append ret (char (.read in)))))
+      (.toString ret))
+    (catch Exception e
+      (str "[net error] " e))))
 
+
+
+;; (print (http-get "http://www.baisdlcu.com"))
 
 ;; java -cp ./;clojure-1.8.0.jar;jsch-0.1.54.jar clojure.main control.clj
 
