@@ -4,90 +4,66 @@
 
 
 
+;; ==========================================================================================
 
-#_(defn test-count-sub []
-  (and (= (count-sub "abcdefg" "cde") 1)
-       (= (count-sub "abcdesklcdelslcdefg" "cde") 3)
-       (= (count-sub "sldfl" "ooo") 0)))
-
+(def ^:dynamic *test-name* "")
 
 
 (defn report-result [result form]
-  (print (str (if result "[pass] " "[FAIL~] ") form "\n"))
+  (print (str (if result "[SUCC] " "[FAIL~!!!] ") *test-name* form "\n"))
   result)
 
-
-
 (defmacro combine-results [& forms]
-  `(let [ret# (atom true)]
-     (do ~@(for [form forms]
-             `(if-not ~form (reset! ret# false))))
-     '@ret#))
-
-#_(print (macroexpand '(combine-results (true? true)
-                                      (false? true))))
-
-(print (combine-results (true? true)
-                 (false? true)))
-
-(defmacro add-print [form]
-  `(print ~form))
-
-(defmacro make-li [& forms]
-  `(do ~@(for [form forms] `(print ~form))))
-
-
-;; (print (macroexpand '(make-li (print "shit") (print "fuck") (print "crap"))))
-
-;; (print (macroexpand '(add-print "it is fuckup")))
-;; (print (macroexpand '(make-li "shit" "fuck" "crap")))
-;; (make-li "shit" "fuck" "crap")
-
-
-
-#_(defmacro check [form]
-  `(report-result ~form '~form))
+  (let [ret (gensym)]
+    `(let [~ret (atom true)]
+       (do ~@(for [f# forms]
+               `(if-not ~f#
+                  (reset! ~ret false))))
+       @~ret)))
 
 (defmacro check [& forms]
-  `(combine-results ~@(for [form forms] `(report-result ~form '~form))))
+  `(combine-results ~@(for [form forms]
+                        `(report-result ~form '~form))))
 
-#_(defn test-count-sub []
-  (report-result (= (count-sub "abcdefg" "cde") 2) '(= (count-sub "abcdefg" "cde") 1))
-  (report-result (= (count-sub "abcdesklcdelslcdefg" "cde") 3)
-                 '(= (count-sub "abcdesklcdelslcdefg" "cde") 3))
-  (report-result (= (count-sub "sldfl" "ooo") 0) '(= (count-sub "sldfl" "ooo") 0)))
+(defmacro deftest [name args & body]
+  `(defn ~name ~args
+     (binding [*test-name* (str *test-name* ":" '~name)]
+       ~@body)))
 
-#_(defn test-count-sub []
-  (check (= (count-sub "abcdefg" "cde") 2))
-  (check (= (count-sub "abcdesklcdelslcdefg" "cde") 3))
-  (check (= (count-sub "sldfl" "ooo") 0)))
+;; ==========================================================================================
 
-#_(defn test-count-sub []
+
+
+
+(deftest test-count-sub []
   (check
-   (= (count-sub "abcdefg" "cde") 2)
-   (= (count-sub "abcdesklcdelslcdefg" "cde") 3)
+   (= (count-sub "abcdefg" "cde") 1)
+   (= (count-sub "abcdesklcdelslcdefg" "cde") 6)
    (= (count-sub "sldfl" "ooo") 0)))
 
+(deftest test-issubstr []
+  (check
+   (true? (issubstr "abcdefg" "bcd"))
+   (true? (issubstr "ooxlsdfs" "lsd"))
+   (false? (issubstr "lllll" "aaaa"))))
 
-#_(print (macroexpand '(check
-   (= (count-sub "abcdefg" "cde") 2)
-   (= (count-sub "abcdesklcdelslcdefg" "cde") 3)
-   (= (count-sub "sldfl" "ooo") 0))))
-;; (test-count-sub)
-
-
-
-
-
-
+(deftest test-model-control []
+  (combine-results
+   (test-count-sub)
+   (test-issubstr)))
 
 
-#_(defn test-issubstr []
-  (and (true? (issubstr "abcdefg" "bcd"))
-       (true? (issubstr "ooxlsdfs" "lsd"))
-       (false? (issubstr "lllll" "aaaa"))))
+(println (test-model-control))
 
-#_(test-issubstr)
+
+
+
+
+
+
+
+
+
 
 
 
