@@ -2,7 +2,13 @@
   (:import (java.util.regex Pattern)
            (java.util Properties)
            (com.jcraft.jsch JSch Session ProxyHTTP)
-           (java.net URL URLConnection))
+
+           (java.net URL URLConnection)
+           (org.apache.http.impl.client DefaultHttpClient)
+           (org.apache.http HttpEntity HttpResponse HttpRequest)
+           (org.apache.http.client.methods HttpGet)
+           (org.apache.http.util EntityUtils)
+           )
   (:require [clojure.string :as string]
             [clojure.java.io :as io] 
             ))
@@ -216,11 +222,23 @@
       (.toString ret))
     (catch Exception e
       (str "[net error] " e))))
+      
+(defn org-http-get [url]
+  (let* [client (DefaultHttpClient.)
+         request (HttpGet. url)]
+    (try
+      (EntityUtils/toString (.getEntity (.execute client request)))
+      (catch Exception e
+        (str "[net error] " e)))))
 
 
 
-;; (print (http-get "http://www.baisdlcu.com"))
 
-;; java -cp ./;clojure-1.8.0.jar;jsch-0.1.54.jar clojure.main control.clj
+;; (print (org-http-get "http://www.baidu.com"))
+;; (print (http-get "http://www.baidu.com"))
+
+
+;; java -cp ./;clojure-1.8.0.jar;jsch-0.1.54.jar;httpcore-4.4.9.jar;httpclient-4.5.5.jar;commons-logging-1.2.jar clojure.main control.clj
+
 
 
