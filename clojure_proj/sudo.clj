@@ -34,7 +34,7 @@
           4 - - - 2 7 - - 1 
           8 2 - 4 - - - 3 - ])
 
-(def b1 '[1  2  3  4  5  6  7  8  9
+#_(def b1 '[1  2  3  4  5  6  7  8  9
           10 11 12 13 14 15 16 17 18
           19 20 21 22 23 24 25 26 27
           28 29 30 31 32 33 34 35 36
@@ -73,7 +73,6 @@
     (map #(nth % col)
          (rows board sz))))
 
-;; 九宫格
 (defn subgrid-for [board i] 
   (let [rows (rows board 9)                    
         sgcol (/ (mod i 9) 3)
@@ -84,7 +83,6 @@
     (flatten grp)))  
 
 
-;; 第i个位置所在的行、列、九宫格里面已出现的所有符号，返回集合
 (defn numbers-present-for [board i] 
   (set 
    (concat (row-for board i 9) 
@@ -118,3 +116,9 @@
     solve
     prep
     print-board)
+
+
+
+
+
+
