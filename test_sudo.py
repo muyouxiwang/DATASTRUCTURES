@@ -45,6 +45,7 @@ class Game(object):
         return self.panel_indexs[i]
 
 
+
     def _place_num(self, num, i):
         assert(1<=num<=9)
         assert(self.panel[i] == -1)
@@ -83,6 +84,8 @@ class Game(object):
         return sudo
 
 
+
+
     def solve_puzzle(self, puzzle):
         panel = copy.copy(puzzle)
 
@@ -97,7 +100,6 @@ class Game(object):
 
     def _get_panel(self):
         return copy.copy(self.panel)
-            
 
     def _try_solve(self):
         for i in range(1, 82):
@@ -134,6 +136,8 @@ class Gui(tk.Frame):
 
         tk.Button(f_left, text = "问题",
                   command = self.make_puzzle).pack(side = "top")
+        self.level = tk.IntVar(value = 10)
+        tk.Entry(f_left, textvariable = self.level).pack(side = "top")
 
         self.text_puzzle = tk.Text(f_left)
         self.text_puzzle.pack(side = "top") 
@@ -150,53 +154,79 @@ class Gui(tk.Frame):
         self.pack()
 
     def make_puzzle(self):
-        self.puzzle = self.game.make_puzzle()
+        puzzle = self.game.make_puzzle(self.level.get())
 
         self.text_puzzle.delete("0.0", "end")
-        for i in range(1, 82):
-            if self.puzzle[i] == -1:
-                self.text_puzzle.insert("end", "*")
-            else: 
-                self.text_puzzle.insert("end", self.puzzle[i])
-            self.text_puzzle.insert("end", " ")
-            if i%9 == 0:
-                self.text_puzzle.insert("end",  "\n")
+        self._show_puzzle(self.text_puzzle, puzzle)
 
     def solve_puzzle(self):
+        puzzle = {i+1:int(n) if n != "-" else -1
+                  for i, n in enumerate(
+            self.text_puzzle.get("0.0", "end").split())}
         self.text_answer.delete("0.0", "end")
-        answer = self.game.solve_puzzle(self.puzzle)
+        answer = self.game.solve_puzzle(puzzle)
+        self._show_puzzle(self.text_answer, answer)
+
+    def _show_puzzle(self, text, puzzle):
         for i in range(1, 82):
-            self.text_answer.insert("end", answer[i])
-            self.text_answer.insert("end", " ")
+            if puzzle[i] == -1:
+                text.insert("end", "-")
+            else: 
+                text.insert("end", puzzle[i])
+            text.insert("end", " ")
             if i%9 == 0:
-                self.text_answer.insert("end",  "\n")
+                text.insert("end",  "\n")
+        
 
 
-# g = Game()
 
-# print_panel(g.panel)
+
+
+def test():
+    panel = {i+1:n for i,n in enumerate([3,-1,-1,-1,-1,5,-1,1,-1,
+                                         -1,7,-1,-1,-1,6,-1,3,-1,
+                                         1,-1,-1,-1,9,-1,-1,-1,-1,
+                                         7,-1,8,-1,-1,-1,-1,9,-1,
+                                         9,-1,-1,4,-1,8,-1,-1,2,
+                                         -1,6,-1,-1,-1,-1,5,-1,1,
+                                         -1,-1,-1,-1,4,-1,-1,-1,6,
+                                         -1,4,-1,7,-1,-1,-1,2,-1,
+                                         -1,2,-1,6,-1,-1,-1,-1,3])}
+    g = Game()
+    # print_panel(g.solve_puzzle(panel))
+    # print_panel(g.solve_puzzle_new(panel))
+
+    g._set_panel(panel)
+    print g._can_place_nums(1)
+    print g._can_place_nums(2)
+    print g._can_place_nums(7)
+
+
 
     
 def main():
-    Gui(tk.Tk(), Game()).mainloop()
+    root = tk.Tk()
+    # screenwidth = root.winfo_screenwidth()
+    # screenheight = root.winfo_screenheight()
+    # width = 400
+    # height = 300
+    # size = '%dx%d+%d+%d' % (
+    #     width, height, (screenwidth - width)/2, (screenheight - height)/2)
+    # root.geometry(size)
+    Gui(root, Game()).mainloop()
     
+if __name__ == "__main__":
+    main()
+    # test()
 
-main()
-        #1  2  3  4  5  6  7  8  9
 
-        #10 11 12 13 14 15 16 17 18
-
-        #19 20 21 22 23 24 25 26 27
-
-        #28 29 30 31 32 33 34 35 36
-
-        #37 38 39 40 41 42 43 44 45
-
-        #46 47 48 49 50 51 52 53 54
-
-        #55 56 57 58 59 60 61 62 63
-
-        #64 65 66 67 68 69 70 71 72
-
-        #73 74 75 76 77 78 79 80 81
+# 1  2  3  4  5  6  7  8  9
+# 10 11 12 13 14 15 16 17 18
+# 19 20 21 22 23 24 25 26 27
+# 28 29 30 31 32 33 34 35 36
+# 37 38 39 40 41 42 43 44 45
+# 46 47 48 49 50 51 52 53 54
+# 55 56 57 58 59 60 61 62 63
+# 64 65 66 67 68 69 70 71 72
+# 73 74 75 76 77 78 79 80 81
 
