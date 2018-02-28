@@ -234,9 +234,9 @@
 
 
 
-        
-;; (print (org-http-get "http://www.baidu.com"))
 ;; (print (http-get "http://www.baidu.com"))
+;; (print (org-http-get "http://www.baidu.com"))
+
 
 
 ;; java -cp ./;clojure-1.8.0.jar;jsch-0.1.54.jar;httpcore-4.4.9.jar;httpclient-4.5.5.jar;commons-logging-1.2.jar clojure.main control.clj
