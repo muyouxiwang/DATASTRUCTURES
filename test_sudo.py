@@ -10,107 +10,30 @@ class Game(object):
     def __init__(self):
         self.panel = {i:-1 for i in range(1, 82)}
 
-        self.panel_indexs = {i: [0,0,0] for i in range(1, 82)}
+        self.panel_indexs = {i: [] for i in range(1, 82)}
 
-        tmp = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-        for i in tmp:
-            self.panel_indexs[i][0] = tmp
+        for ins in self._make_hor_indexs() + \
+                   self._make_ver_indexs() + \
+                   self._make_rect_indexs():
+            for i in ins:
+                self.panel_indexs[i].append(ins)
 
-        tmp = [10,11, 12,13, 14,15, 16,17, 18]
-        for i in tmp:
-            self.panel_indexs[i][0] = tmp
+    def _make_hor_indexs(self):
+        return [range(i, i + 9) for i in range(1, 82, 9)]
 
-        tmp = [19,20, 21,22, 23,24, 25,26, 27]
-        for i in tmp:
-            self.panel_indexs[i][0] = tmp
+    def _make_ver_indexs(self):
+        return [range(i, i + 73, 9) for i in range(1, 10)]
 
-        tmp = [28,29, 30,31, 32,33, 34,35, 36]
-        for i in tmp:
-            self.panel_indexs[i][0] = tmp
+    def _make_rect_indexs(self):
+        all = []
+        for i in range(1, 82, 27):
+            for j in range(i, i + 9, 3):
+                ins = []
+                for k in range(j, j + 3):
+                    ins.extend((k, k + 9, k + 18))
+                all.append(ins)
+        return all
 
-        tmp = [37,38, 39,40, 41,42, 43,44, 45]
-        for i in tmp:
-            self.panel_indexs[i][0] = tmp
-
-        tmp = [46,47, 48,49, 50,51, 52,53, 54]
-        for i in tmp:
-            self.panel_indexs[i][0] = tmp
-
-        tmp = [55,56, 57,58, 59,60, 61,62, 63]
-        for i in tmp:
-            self.panel_indexs[i][0] = tmp
-
-        tmp = [64,65, 66,67, 68,69, 70,71, 72]
-        for i in tmp:
-            self.panel_indexs[i][0] = tmp
-
-        tmp = [73,74, 75,76, 77,78, 79,80, 81]
-        for i in tmp:
-            self.panel_indexs[i][0] = tmp
-
-        tmp = [1, 10, 19, 28, 37, 46, 55, 64, 73]
-        for i in tmp:
-            self.panel_indexs[i][1] = tmp
-        tmp = [2, 11, 20, 29, 38, 47, 56, 65, 74]
-        for i in tmp:
-            self.panel_indexs[i][1] = tmp
-        tmp = [3, 12, 21, 30, 39, 48, 57, 66, 75]
-        for i in tmp:
-            self.panel_indexs[i][1] = tmp
-        tmp = [4, 13, 22, 31, 40, 49, 58, 67, 76]
-        for i in tmp:
-            self.panel_indexs[i][1] = tmp
-        tmp = [5, 14, 23, 32, 41, 50, 59, 68, 77]
-        for i in tmp:
-            self.panel_indexs[i][1] = tmp
-        tmp = [6, 15, 24, 33, 42, 51, 60, 69, 78]
-        for i in tmp:
-            self.panel_indexs[i][1] = tmp
-        tmp = [7, 16, 25, 34, 43, 52, 61, 70, 79]
-        for i in tmp:
-            self.panel_indexs[i][1] = tmp
-        tmp = [8, 17, 26, 35, 44, 53, 62, 71, 80]
-        for i in tmp:
-            self.panel_indexs[i][1] = tmp
-        tmp = [9, 18, 27, 36, 45, 54, 63, 72, 81]
-        for i in tmp:
-            self.panel_indexs[i][1] = tmp
-
-        tmp = [1,   2,   3, 10,   11,   12, 19,   20,   21]    
-        for i in tmp:
-            self.panel_indexs[i][2] = tmp
-
-        tmp = [4,   5,   6, 13,   14,   15, 22,   23,   24]
-        for i in tmp:
-            self.panel_indexs[i][2] = tmp
-
-        tmp = [7,   8,   9, 16,   17,   18, 25,   26,   27]    
-        for i in tmp:
-            self.panel_indexs[i][2] = tmp
-
-        tmp = [28,   29,   30, 37,38,39,46,47,48]
-        for i in tmp:
-            self.panel_indexs[i][2] = tmp
-
-        tmp = [31,   32,   33, 40,41,42,49,50,51]    
-        for i in tmp:
-            self.panel_indexs[i][2] = tmp
-
-        tmp = [34,   35,   36, 43,44,45,52,53,54]    
-        for i in tmp:
-            self.panel_indexs[i][2] = tmp
-
-        tmp = [55,   56,   57, 64,   65,   66, 73,   74,   75]   
-        for i in tmp:
-            self.panel_indexs[i][2] = tmp
-
-        tmp = [58,   59,   60, 67,   68,   69, 76,   77,   78]
-        for i in tmp:
-            self.panel_indexs[i][2] = tmp
-
-        tmp = [61,   62,   63, 70,   71,   72, 79,   80,   81]
-        for i in tmp:
-            self.panel_indexs[i][2] = tmp
 
     def _reset_panel(self):
         self.panel = {i:-1 for i in range(1, 82)}
@@ -125,8 +48,8 @@ class Game(object):
     def _place_num(self, num, i):
         assert(1<=num<=9)
         assert(self.panel[i] == -1)
-        is1, is2, is3 = self._get_all_indexs(i)
-        for index in is1 + is2 + is3:
+        ins1, ins2, ins3 = self._get_all_indexs(i)
+        for index in ins1 + ins2 + ins3:
             if num == self.panel[index]:
                 return False
         self.panel[i] = num
@@ -189,6 +112,7 @@ class Game(object):
                 num = random.choice(all)
         return True
 
+    
         
 def print_panel(panel = None):
     for i in range(1, 82):
@@ -248,10 +172,15 @@ class Gui(tk.Frame):
                 self.text_answer.insert("end",  "\n")
 
 
+# g = Game()
+
+# print_panel(g.panel)
+
     
 def main():
     Gui(tk.Tk(), Game()).mainloop()
     
+
 main()
         #1  2  3  4  5  6  7  8  9
 
@@ -271,10 +200,3 @@ main()
 
         #73 74 75 76 77 78 79 80 81
 
-        #with open("tmp.txt", "w") as wf:
-
-            #for i in range(1, 81):
-                #print >> wf, i, " ", i+1, " ", i+2
-                #print >> wf, i+9, " ", i+1+9, " ", i+2+9
-                #print >> wf, i+9+9, " ", i+1+9+9, " ", i+2+9+9
-    
