@@ -237,7 +237,7 @@ if __name__ == "__main__":
     root = tk.Tk()
 
     editor = GuiEditor(root)
-    editor.set_content(edit.Content("./code_demo.py"))
+    editor.set_content(edit.Content("./bigfile.py"))
     editor.set_cur_status(editor_status.NormalStatus(editor, editor.t))
 
     root.mainloop()

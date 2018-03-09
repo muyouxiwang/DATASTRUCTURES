@@ -4,6 +4,8 @@ import os
 
 import re
 
+import StringIO
+
 
 class Tree(object):
     def __init__(self, name, abspath, ntype = "node_dir", depth = 0, toggle = False):
@@ -99,12 +101,12 @@ class Content(object):
 
         self.saved = True
         self.content_lines = []
-        self.content = ""
 
         with open(self.path, "r") as rf:
-            for line in rf:
-                self.content_lines.append(line)
-                self.content += line
+            self.content = rf.read()
+
+        for line in StringIO.StringIO(self.content):
+            self.content_lines.append(line)
 
     def get_content(self):
         return self.content
