@@ -1,0 +1,7 @@
+
+
+尝试用 nodejs + electron 重写发脚本活动的工具
+
+里面用到一些JavaScript的设计模式
+
+还未全部完成
